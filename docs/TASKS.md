@@ -99,26 +99,26 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 ## Sprint 4 — Financial & Dashboard
 
 ### Backend
-- [ ] Implement `CashFlowController`
-  - [ ] `GET /cashflow?from=&to=` — filtered listing
-  - [ ] `POST /cashflow` — manual entry
-  - [ ] `DELETE /cashflow/{id}`
-- [ ] Auto-create INCOME cash flow entry when appointment status → DONE
-- [ ] Implement `ReportController`
-  - [ ] `GET /reports/financial?from=&to=` — revenue, expenses, net per period
-  - [ ] `GET /reports/appointments?from=&to=` — counts by status, by employee, by service
+- [x] Implement `CashFlowController`
+  - [x] `GET /cashflow?from=&to=` — filtered listing
+  - [x] `POST /cashflow` — manual entry
+  - [x] `DELETE /cashflow/{id}`
+- [x] Auto-create INCOME cash flow entry when appointment status → DONE
+- [x] Implement `ReportController`
+  - [x] `GET /reports/financial?from=&to=` — revenue, expenses, net per period
+  - [x] `GET /reports/appointments?from=&to=` — counts by status, by employee, by service
 - [ ] Unit tests for report aggregation logic
 
 ### Frontend
-- [ ] Implement `Dashboard` page
-  - [ ] KPI cards: appointments today, revenue this month, active clients, active employees
+- [x] Implement `Dashboard` page
+  - [x] KPI cards: appointments today, revenue this month, active clients, active employees
   - [ ] Line chart: revenue last 30 days (Recharts)
   - [ ] Bar chart: appointments per employee this month
-- [ ] Implement `CashFlow` page (table + add entry form + delete)
-- [ ] Implement `Reports` page
-  - [ ] Date range picker
-  - [ ] Financial summary (revenue, expenses, net)
-  - [ ] Appointments breakdown chart
+- [x] Implement `CashFlow` page (table + add entry form + delete)
+- [x] Implement `Reports` page
+  - [x] Date range picker
+  - [x] Financial summary (revenue, expenses, net)
+  - [x] Appointments breakdown chart
   - [ ] Export to PDF (jsPDF)
 
 ---
