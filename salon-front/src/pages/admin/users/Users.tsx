@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Plus } from 'lucide-react';
 import { Table } from '../../../components/table/Table';
 import { ModalForm } from '../../../components/modal/ModalForm';
 import { ConfirmDialog } from '../../../components/modal/ConfirmDialog';
 import { PermissionGate } from '../../../components/permissions/PermissionGate';
 import { usersApi } from './services/users';
-import type { UserData, UserUpdateRequest } from './services/users';
+import type { UserData, UserUpdateRequest, UserCreateRequest } from './services/users';
 
 export const Users = () => {
   const [users, setUsers] = useState<UserData[]>([]);
@@ -19,7 +19,7 @@ export const Users = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   
-  const { register, handleSubmit, reset, setValue } = useForm<UserUpdateRequest>();
+  const { register, handleSubmit, reset, setValue } = useForm<UserCreateRequest & UserUpdateRequest>();
 
   const loadUsers = async () => {
     setIsLoading(true);
@@ -38,26 +38,45 @@ export const Users = () => {
     loadUsers();
   }, []);
 
-  const handleOpenForm = (user: UserData) => {
+  const handleOpenForm = (user?: UserData) => {
     reset();
-    setEditingUser(user);
-    setValue('name', user.name);
-    setValue('email', user.email);
-    setValue('phone', user.phone);
-    setValue('active', user.active);
+    if (user) {
+      setEditingUser(user);
+      setValue('name', user.name);
+      setValue('email', user.email);
+      setValue('phone', user.phone);
+      setValue('active', user.active);
+      setValue('roleId', getRoleIdByName(user.role));
+    } else {
+      setEditingUser(null);
+      setValue('active', true);
+      setValue('roleId', 4); // Default to CLIENTE
+    }
     setShowForm(true);
   };
 
-  const onSubmit = async (data: UserUpdateRequest) => {
+  const getRoleIdByName = (roleName: string) => {
+    switch (roleName) {
+      case 'ADMIN': return 1;
+      case 'GERENTE_DE_ATENDIMENTO': return 2;
+      case 'FUNCIONARIA': return 3;
+      case 'CLIENTE': return 4;
+      default: return 4;
+    }
+  };
+
+  const onSubmit = async (data: UserCreateRequest & UserUpdateRequest) => {
     try {
       if (editingUser?.id) {
         await usersApi.update(editingUser.id, data);
+      } else {
+        await usersApi.create(data as UserCreateRequest);
       }
       setShowForm(false);
       loadUsers();
     } catch (error) {
-      console.error('Erro ao salvar usuário', error);
-      alert('Erro ao salvar usuário. Verifique os dados e tente novamente.');
+      console.error('Erro ao salvar', error);
+      alert('Erro ao salvar. Verifique os dados e tente novamente.');
     }
   };
 
@@ -113,11 +132,16 @@ export const Users = () => {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gerenciar Usuários</h2>
+        <h2>Gerenciar Clientes</h2>
+        <PermissionGate method="POST" endpoint="/v1/users">
+          <Button variant="primary" onClick={() => handleOpenForm()}>
+            <Plus size={18} className="me-2" /> Novo Cliente/Funcionário
+          </Button>
+        </PermissionGate>
       </div>
 
       {isLoading ? (
-        <p>Carregando usuários...</p>
+        <p>Carregando dados...</p>
       ) : (
         <Table 
           columns={columns} 
@@ -129,17 +153,27 @@ export const Users = () => {
       <ModalForm
         show={showForm}
         onHide={() => setShowForm(false)}
-        title="Editar Usuário"
+        title={editingUser ? "Editar Conta" : "Nova Conta"}
         onSubmit={handleSubmit(onSubmit)}
       >
         <Form.Group className="mb-3">
           <Form.Label>Nome</Form.Label>
-          <Form.Control type="text" {...register('name')} />
+          <Form.Control type="text" {...register('name', { required: true })} />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
-          <Form.Control type="email" {...register('email')} />
+          <Form.Control type="email" {...register('email', { required: true })} />
+        </Form.Group>
+        
+        <Form.Group className="mb-3">
+          <Form.Label>Tipo de Conta (Papel)</Form.Label>
+          <Form.Select {...register('roleId', { required: true })}>
+            <option value="4">Cliente</option>
+            <option value="3">Funcionária</option>
+            <option value="2">Gerente</option>
+            <option value="1">Administrador</option>
+          </Form.Select>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -148,12 +182,12 @@ export const Users = () => {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Nova Senha (deixe em branco para não alterar)</Form.Label>
-          <Form.Control type="password" {...register('password')} />
+          <Form.Label>{editingUser ? "Nova Senha (opcional)" : "Senha *"}</Form.Label>
+          <Form.Control type="password" {...register('password', { required: !editingUser })} />
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Check type="switch" label="Usuário Ativo" {...register('active')} />
+          <Form.Check type="switch" label="Conta Ativa" {...register('active')} />
         </Form.Group>
       </ModalForm>
 
@@ -161,8 +195,8 @@ export const Users = () => {
         show={showConfirm}
         onHide={() => setShowConfirm(false)}
         onConfirm={confirmDelete}
-        title="Excluir Usuário"
-        message="Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita."
+        title="Excluir Conta"
+        message="Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita."
       />
     </div>
   );

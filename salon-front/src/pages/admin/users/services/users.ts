@@ -19,9 +19,23 @@ export interface UserUpdateRequest {
   roleId?: number;
 }
 
+export interface UserCreateRequest {
+  name: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  active?: boolean;
+  roleId: number;
+}
+
 export const usersApi = {
   findAll: async () => {
     const { data } = await api.get<UserData[]>('/users');
+    return data;
+  },
+
+  create: async (createData: UserCreateRequest) => {
+    const { data } = await api.post<UserData>('/users', createData);
     return data;
   },
 
