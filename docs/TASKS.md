@@ -51,23 +51,23 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 ## Sprint 2 — Admin CRUD
 
 ### Backend
-- [ ] Write `V3__create_business_tables.sql` (tb_service, tb_product, tb_employee, tb_appointment, tb_cashflow)
-- [ ] Implement `UserController` (GET list, GET by id, PATCH, DELETE) with permission guards
-- [ ] Implement `ServiceController` (CRUD) — GET public, mutate admin-only
-- [ ] Implement `ProductController` (CRUD) — GET public, mutate admin-only
-- [ ] Implement `EmployeeController` (CRUD) — admin-only
+- [x] Write `V3__create_business_tables.sql` (tb_service, tb_product, tb_employee, tb_appointment, tb_cashflow)
+- [x] Implement `UserController` (GET list, GET by id, PATCH, DELETE) with permission guards
+- [x] Implement `ServiceController` (CRUD) — GET public, mutate admin-only
+- [x] Implement `ProductController` (CRUD) — GET public, mutate admin-only
+- [x] Implement `EmployeeController` (CRUD) — admin-only
 - [ ] Unit tests for all service layer classes (Sprint 2 scope)
 
 ### Frontend
-- [ ] Implement generic `Table` component (pagination, search, row actions)
-- [ ] Implement `ModalForm` component (React Hook Form + Bootstrap Modal)
-- [ ] Implement `ConfirmDialog` component
-- [ ] Implement `PermissionGate` component
-- [ ] Implement `Users` admin page (list, edit, delete)
-- [ ] Implement `Employees` admin page (list, create, edit, delete)
-- [ ] Implement `AdminServices` page (list, create, edit, delete)
-- [ ] Implement `Products` admin page (list, create, edit, delete)
-- [ ] All form validation errors displayed in **pt-BR**
+- [x] Implement generic `Table` component (pagination, search, row actions)
+- [x] Implement `ModalForm` component (React Hook Form + Bootstrap Modal)
+- [x] Implement `ConfirmDialog` component
+- [x] Implement `PermissionGate` component
+- [x] Implement `Users` admin page (list, edit, delete)
+- [x] Implement `Employees` admin page (list, create, edit, delete)
+- [x] Implement `AdminServices` page (list, create, edit, delete)
+- [x] Implement `Products` admin page (list, create, edit, delete)
+- [x] All form validation errors displayed in **pt-BR**
 
 ---
 
