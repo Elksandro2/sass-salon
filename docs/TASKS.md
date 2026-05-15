@@ -151,12 +151,12 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 ### Features
 - [ ] Email notification on appointment confirmed/cancelled (JavaMailSender)
 - [ ] Profile image upload (store in filesystem or S3-compatible bucket)
-- [ ] `Profile` page (customer updates name, phone, password, photo)
+- [x] `Profile` page (customer updates name, phone, password, photo)
 - [ ] Password reset via email token flow
 
 ### Polish
 - [ ] Loading skeletons on all data-fetching pages
 - [ ] Empty states with helpful messages (in pt-BR)
-- [ ] Global 404 page
+- [x] Global 404 page
 - [ ] Favicon + `<title>` tags per page (SEO)
 - [ ] Final UX review and responsive polish
