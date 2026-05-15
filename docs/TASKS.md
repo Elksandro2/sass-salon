@@ -74,25 +74,25 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 ## Sprint 3 — Appointments
 
 ### Backend
-- [ ] Implement `AppointmentController`
-  - [ ] `GET /appointments/slots?date=&employee_id=` — available time slots (public)
-  - [ ] `POST /appointments` — client books (CLIENTE role)
-  - [ ] `GET /appointments/my` — client's own appointments
-  - [ ] `GET /appointments` — all appointments (ADMIN, GERENTE)
-  - [ ] `PATCH /appointments/{id}/cancel` — cancel (owner or ADMIN)
-  - [ ] `PATCH /appointments/{id}/status` — update status (ADMIN, FUNCIONARIA)
-- [ ] Slot logic: block already-booked times per employee, respect service duration
+- [x] Implement `AppointmentController`
+  - [x] `GET /appointments/slots?date=&employee_id=` — available time slots (public)
+  - [x] `POST /appointments` — client books (CLIENTE role)
+  - [x] `GET /appointments/my` — client's own appointments
+  - [x] `GET /appointments` — all appointments (ADMIN, GERENTE)
+  - [x] `PATCH /appointments/{id}/cancel` — cancel (owner or ADMIN)
+  - [x] `PATCH /appointments/{id}/status` — update status (ADMIN, FUNCIONARIA)
+- [x] Slot logic: block already-booked times per employee, respect service duration
 - [ ] Unit + integration tests for appointment logic
 
 ### Frontend
-- [ ] Implement `PublicAppointment` page
-  - [ ] Step 1: select service
-  - [ ] Step 2: select employee
-  - [ ] Step 3: pick date + available slot
-  - [ ] Step 4: confirm + submit (requires login redirect if anonymous)
-- [ ] Implement `MyAppointments` page (list with cancel button)
-- [ ] Implement `AdminAppointments` page (calendar view + list + status update)
-- [ ] Implement `PublicServices` page (cards with service info)
+- [x] Implement `PublicAppointment` page
+  - [x] Step 1: select service
+  - [x] Step 2: select employee
+  - [x] Step 3: pick date + available slot
+  - [x] Step 4: confirm + submit (requires login redirect if anonymous)
+- [x] Implement `MyAppointments` page (list with cancel button)
+- [x] Implement `AdminAppointments` page (calendar view + list + status update)
+- [x] Implement `PublicServices` page (cards with service info)
 
 ---
 

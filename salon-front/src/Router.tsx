@@ -8,14 +8,18 @@ import { AdminServices } from './pages/admin/AdminServices';
 import { Products } from './pages/admin/Products';
 import { Users } from './pages/admin/Users';
 import { Employees } from './pages/admin/Employees';
+import { PublicServices } from './pages/public/PublicServices';
+import { PublicAppointment } from './pages/public/PublicAppointment';
+import { MyAppointments } from './pages/customer/MyAppointments';
+import { AdminAppointments } from './pages/admin/AdminAppointments';
 
 export const Router = () => {
   return (
     <Routes>
       <Route element={<DefaultLayout />}>
         <Route path="/" element={<div>Home (Pública)</div>} />
-        <Route path="/services" element={<div>Serviços (Pública)</div>} />
-        <Route path="/appointment" element={<div>Agendamento (Pública)</div>} />
+        <Route path="/services" element={<PublicServices />} />
+        <Route path="/appointment" element={<PublicAppointment />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
@@ -26,13 +30,13 @@ export const Router = () => {
         <Route path="/admin/employees" element={<Employees />} />
         <Route path="/admin/services" element={<AdminServices />} />
         <Route path="/admin/products" element={<Products />} />
-        <Route path="/admin/appointments" element={<div>Agendamentos Admin</div>} />
+        <Route path="/admin/appointments" element={<AdminAppointments />} />
         <Route path="/admin/cashflow" element={<div>Fluxo de Caixa Admin</div>} />
         <Route path="/admin/reports" element={<div>Relatórios Admin</div>} />
       </Route>
 
       <Route element={<CustomerLayout />}>
-        <Route path="/my-appointments" element={<div>Meus Agendamentos</div>} />
+        <Route path="/my-appointments" element={<MyAppointments />} />
         <Route path="/profile" element={<div>Meu Perfil</div>} />
       </Route>
     </Routes>
