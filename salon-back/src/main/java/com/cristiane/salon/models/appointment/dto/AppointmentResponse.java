@@ -1,0 +1,30 @@
+package com.cristiane.salon.models.appointment.dto;
+
+import com.cristiane.salon.models.appointment.entity.Appointment;
+import java.time.LocalDateTime;
+
+public record AppointmentResponse(
+        Long id,
+        Long clientId,
+        String clientName,
+        Long employeeId,
+        String employeeName,
+        Long serviceId,
+        String serviceName,
+        LocalDateTime scheduledAt,
+        String status
+) {
+    public static AppointmentResponse fromEntity(Appointment appointment) {
+        return new AppointmentResponse(
+                appointment.getId(),
+                appointment.getClient().getId(),
+                appointment.getClient().getName(),
+                appointment.getEmployee().getId(),
+                appointment.getEmployee().getUser().getName(),
+                appointment.getService().getId(),
+                appointment.getService().getName(),
+                appointment.getScheduledAt(),
+                appointment.getStatus().name()
+        );
+    }
+}
