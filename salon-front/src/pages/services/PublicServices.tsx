@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Spinner } from 'react-bootstrap';
-import { servicesApi } from './services/services';
-import type { ServiceData } from './services/services';
+import { salonServicesApi } from './services/services';
+import type { SalonServiceData } from './services/services';
 
 export const PublicServices = () => {
-  const [services, setServices] = useState<ServiceData[]>([]);
+  const [services, setServices] = useState<SalonServiceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const data = await servicesApi.findAll();
+        const data = await salonServicesApi.findAll();
         setServices(data.filter(s => s.active));
       } catch (error) {
         console.error('Erro ao carregar serviços', error);

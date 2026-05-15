@@ -20,6 +20,6 @@ INSERT INTO tb_user (name, email, password, role_id)
 SELECT
     'Administrador',
     'admin@salao.com',
-    '$2a$12$xJe8wO2.LiPS.Vn/bpVWxuTUYaT4B5cO2r0mkS2HvRnHaGRFdV4Gy',
+    '$2a$10$UTfuKSTnRmrXsHWLMQ1mpuxLO4a5n1AcmfuUwlcsnpAUw4JTd7O7y',
     r.id
 FROM tb_role r WHERE r.name = 'ADMIN';

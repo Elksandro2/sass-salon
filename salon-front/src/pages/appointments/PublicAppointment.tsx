@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { servicesApi } from '../services/services/services';
-import type { ServiceData } from '../services/services/services';
+import { salonServicesApi } from '../services/services/services';
+import type { SalonServiceData } from '../services/services/services';
 import { employeesApi } from '../admin/employees/services/employees';
 import type { EmployeeData } from '../admin/employees/services/employees';
 import { appointmentsApi } from './services/appointments';
@@ -11,7 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 export const PublicAppointment = () => {
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState<ServiceData[]>([]);
+  const [services, setServices] = useState<SalonServiceData[]>([]);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
   const [slots, setSlots] = useState<TimeSlotResponse[]>([]);
   
@@ -30,7 +30,7 @@ export const PublicAppointment = () => {
     const fetchInitialData = async () => {
       try {
         const [servicesData, employeesData] = await Promise.all([
-          servicesApi.findAll(),
+          salonServicesApi.findAll(),
           employeesApi.findAll()
         ]);
         setServices(servicesData.filter(s => s.active));

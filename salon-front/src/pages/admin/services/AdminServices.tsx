@@ -6,25 +6,25 @@ import { Table } from '../../../components/table/Table';
 import { ModalForm } from '../../../components/modal/ModalForm';
 import { ConfirmDialog } from '../../../components/modal/ConfirmDialog';
 import { PermissionGate } from '../../../components/permissions/PermissionGate';
-import { servicesApi } from '../../services/services/services';
-import type { ServiceData } from '../../services/services/services';
+import { salonServicesApi } from '../../services/services/services';
+import type { SalonServiceData } from '../../services/services/services';
 
 export const AdminServices = () => {
-  const [services, setServices] = useState<ServiceData[]>([]);
+  const [services, setServices] = useState<SalonServiceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [showForm, setShowForm] = useState(false);
-  const [editingService, setEditingService] = useState<ServiceData | null>(null);
+  const [editingService, setEditingService] = useState<SalonServiceData | null>(null);
   
   const [showConfirm, setShowConfirm] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
   
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ServiceData>();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<SalonServiceData>();
 
   const loadServices = async () => {
     setIsLoading(true);
     try {
-      const data = await servicesApi.findAll();
+      const data = await salonServicesApi.findAll();
       setServices(data);
     } catch (error) {
       console.error('Erro ao carregar serviços', error);
@@ -38,7 +38,7 @@ export const AdminServices = () => {
     loadServices();
   }, []);
 
-  const handleOpenForm = (service?: ServiceData) => {
+  const handleOpenForm = (service?: SalonServiceData) => {
     reset();
     if (service) {
       setEditingService(service);
@@ -54,12 +54,12 @@ export const AdminServices = () => {
     setShowForm(true);
   };
 
-  const onSubmit = async (data: ServiceData) => {
+  const onSubmit = async (data: SalonServiceData) => {
     try {
       if (editingService?.id) {
-        await servicesApi.update(editingService.id, data);
+        await salonServicesApi.update(editingService.id, data);
       } else {
-        await servicesApi.create(data);
+        await salonServicesApi.create(data);
       }
       setShowForm(false);
       loadServices();
@@ -72,7 +72,7 @@ export const AdminServices = () => {
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
     try {
-      await servicesApi.delete(serviceToDelete);
+      await salonServicesApi.delete(serviceToDelete);
       setShowConfirm(false);
       loadServices();
     } catch (error) {
@@ -86,22 +86,22 @@ export const AdminServices = () => {
     { 
       key: 'price', 
       label: 'Preço',
-      render: (item: ServiceData) => `R$ ${item.price.toFixed(2)}`
+      render: (item: SalonServiceData) => `R$ ${item.price.toFixed(2)}`
     },
     { 
       key: 'durationMin', 
       label: 'Duração (min)',
-      render: (item: ServiceData) => `${item.durationMin} min`
+      render: (item: SalonServiceData) => `${item.durationMin} min`
     },
     { 
       key: 'active', 
       label: 'Status',
-      render: (item: ServiceData) => item.active ? 'Ativo' : 'Inativo'
+      render: (item: SalonServiceData) => item.active ? 'Ativo' : 'Inativo'
     },
     {
       key: 'actions',
       label: 'Ações',
-      render: (item: ServiceData) => (
+      render: (item: SalonServiceData) => (
         <div className="d-flex gap-2">
           <PermissionGate method="PUT" endpoint={`/v1/services/${item.id}`}>
             <Button variant="outline-primary" size="sm" onClick={() => handleOpenForm(item)}>

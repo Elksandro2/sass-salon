@@ -1,6 +1,6 @@
 import api from '../../../services/api';
 
-export interface ServiceData {
+export interface SalonServiceData {
   id?: number;
   name: string;
   description: string;
@@ -9,24 +9,24 @@ export interface ServiceData {
   active: boolean;
 }
 
-export const servicesApi = {
+export const salonServicesApi = {
   findAll: async () => {
-    const { data } = await api.get<ServiceData[]>('/services');
+    const { data } = await api.get<SalonServiceData[]>('/services');
     return data;
   },
 
   findById: async (id: number) => {
-    const { data } = await api.get<ServiceData>(`/services/${id}`);
+    const { data } = await api.get<SalonServiceData>(`/services/${id}`);
     return data;
   },
 
-  create: async (serviceData: ServiceData) => {
-    const { data } = await api.post<ServiceData>('/services', serviceData);
+  create: async (salonServiceData: SalonServiceData) => {
+    const { data } = await api.post<SalonServiceData>('/services', salonServiceData);
     return data;
   },
 
-  update: async (id: number, serviceData: ServiceData) => {
-    const { data } = await api.put<ServiceData>(`/services/${id}`, serviceData);
+  update: async (id: number, salonServiceData: SalonServiceData) => {
+    const { data } = await api.put<SalonServiceData>(`/services/${id}`, salonServiceData);
     return data;
   },
 
