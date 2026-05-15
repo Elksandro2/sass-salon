@@ -25,26 +25,26 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 - [ ] Configure `BeanConfig.java` (PasswordEncoder, etc.)
 
 ### Backend — Security
-- [ ] Implement `User` entity + `Role` entity + `Permission` entity
-- [ ] Implement `SecurityUserDetailsService`
-- [ ] Implement `JwtService` (generate, validate, extract claims)
-- [ ] Implement `JwtAuthenticationFilter`
-- [ ] Implement `CustomPermissionEvaluator` (authority-per-endpoint check)
-- [ ] Implement `EntityPermissionEvaluator` (object-level ownership check)
-- [ ] Implement `VerifyUserPermissions` bean
-- [ ] Configure `SecurityConfig` (filter chain, public routes, `@EnableMethodSecurity`)
-- [ ] Implement `AuthController` (`/auth/login`, `/auth/refresh`, `/auth/register`)
-- [ ] Implement `GlobalExceptionHandler` (401, 403, 404, 400, 500)
+- [x] Implement `User` entity + `Role` entity + `Permission` entity
+- [x] Implement `SecurityUserDetailsService`
+- [x] Implement `JwtService` (generate, validate, extract claims)
+- [x] Implement `JwtAuthenticationFilter`
+- [x] Implement `CustomPermissionEvaluator` (authority-per-endpoint check)
+- [x] Implement `EntityPermissionEvaluator` (object-level ownership check)
+- [x] Implement `VerifyUserPermissions` bean
+- [x] Configure `SecurityConfig` (filter chain, public routes, `@EnableMethodSecurity`)
+- [x] Implement `AuthController` (`/auth/login`, `/auth/refresh`, `/auth/register`)
+- [x] Implement `GlobalExceptionHandler` (401, 403, 404, 400, 500)
 
 ### Frontend — Base Setup
-- [ ] Configure Axios instance (`services/api.ts`) with JWT interceptor + auto-refresh
-- [ ] Implement `AuthContext` (token, role, authorities, login, logout, refresh)
-- [ ] Implement `useAuth` hook
-- [ ] Implement `usePermission` hook
-- [ ] Create `Router.tsx` with all routes (protected + public)
-- [ ] Create `DefaultLayout`, `AdminLayout`, `CustomerLayout`
-- [ ] Create `Login` page (form + API call + redirect)
-- [ ] Create `Register` page (customer self-registration)
+- [x] Configure Axios instance (`services/api.ts`) with JWT interceptor + auto-refresh
+- [x] Implement `AuthContext` (token, role, authorities, login, logout, refresh)
+- [x] Implement `useAuth` hook
+- [x] Implement `usePermission` hook
+- [x] Create `Router.tsx` with all routes (protected + public)
+- [x] Create `DefaultLayout`, `AdminLayout`, `CustomerLayout`
+- [x] Create `Login` page (form + API call + redirect)
+- [x] Create `Register` page (customer self-registration)
 
 ---
 
