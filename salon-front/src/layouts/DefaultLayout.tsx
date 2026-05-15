@@ -7,7 +7,7 @@ export const DefaultLayout = () => {
 
   return (
     <>
-      <Navbar bg="dark" variant="dark" expand="lg">
+      <Navbar expand="lg" className="navbar">
         <Container>
           <Navbar.Brand as={Link} to="/">Cristiane Moura</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />

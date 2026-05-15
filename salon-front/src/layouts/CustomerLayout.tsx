@@ -13,7 +13,7 @@ export const CustomerLayout = () => {
 
   return (
     <>
-      <Navbar bg="primary" variant="dark" expand="lg">
+      <Navbar expand="lg" className="navbar">
         <Container>
           <Navbar.Brand as={Link} to="/">Área do Cliente</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />

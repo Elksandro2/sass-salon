@@ -16,13 +16,13 @@ export const AdminLayout = () => {
   }
 
   return (
-    <Container fluid>
-      <Row>
-        <Col md={2} className="bg-dark text-white min-vh-100 p-3">
-          <h4>Admin</h4>
-          <Nav className="flex-column mt-4">
+    <Container fluid className="px-0">
+      <Row className="g-0">
+        <Col md={2} className="admin-sidebar min-vh-100 p-3">
+          <h4 className="text-white mb-4">Admin Salão</h4>
+          <Nav className="flex-column">
             <Nav.Link as={Link} to="/admin/dashboard" className="text-white">Dashboard</Nav.Link>
-            <Nav.Link as={Link} to="/admin/users" className="text-white">Usuários</Nav.Link>
+            <Nav.Link as={Link} to="/admin/users" className="text-white">Clientes</Nav.Link>
             <Nav.Link as={Link} to="/admin/employees" className="text-white">Funcionárias</Nav.Link>
             <Nav.Link as={Link} to="/admin/services" className="text-white">Serviços</Nav.Link>
             <Nav.Link as={Link} to="/admin/products" className="text-white">Produtos</Nav.Link>
