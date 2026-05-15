@@ -18,8 +18,8 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 ### Backend — Base Setup
 - [x] Configure `application.yml`, `application-dev.yml`, `application-prod.yml`
 - [x] Configure Flyway
-- [ ] Write `V1__create_security_tables.sql` (tb_role, tb_permission, tb_user, join tables)
-- [ ] Write `V2__insert_roles_permissions.sql` (seed ADMIN, GERENTE, FUNCIONARIA, CLIENTE + permissions)
+- [x] Write `V1__create_security_tables.sql` (tb_role, tb_permission, tb_user, join tables)
+- [x] Write `V2__insert_roles_permissions.sql` (seed ADMIN, GERENTE, FUNCIONARIA, CLIENTE + permissions)
 - [ ] Configure `CorsConfig.java`
 - [ ] Configure `OpenApiConfig.java` (Swagger)
 - [ ] Configure `BeanConfig.java` (PasswordEncoder, etc.)
@@ -128,8 +128,8 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 ### Backend
 - [ ] Integration tests with Testcontainers for all controllers
 - [ ] Achieve ≥ 80% coverage on service + controller layers
-- [ ] Validate all Swagger annotations are accurate
-- [ ] Review all error messages are in **pt-BR**
+- [x] Validate all Swagger annotations are accurate
+- [x] Review all error messages are in **pt-BR**
 
 ### Frontend
 - [ ] Unit tests (Vitest + RTL) for: Table, ModalForm, PermissionGate, AuthContext
