@@ -72,7 +72,7 @@ public class AppointmentService {
             boolean isAvailable = true;
             for (Appointment apt : existingAppointments) {
                 LocalTime aptStart = apt.getScheduledAt().toLocalTime();
-                LocalTime aptEnd = aptStart.plusMinutes(apt.getService().getDurationMin());
+                LocalTime aptEnd = aptStart.plusMinutes(apt.getSalonService().getDurationMin());
 
                 // Se o slot estiver dentro do horário de um agendamento existente
                 if ((slotTime.equals(aptStart) || slotTime.isAfter(aptStart)) && slotTime.isBefore(aptEnd)) {
@@ -100,7 +100,7 @@ public class AppointmentService {
         Employee employee = employeeRepository.findById(request.employeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado"));
                 
-        com.cristiane.salon.models.service.entity.Service service = salonServiceRepository.findById(request.serviceId())
+        com.cristiane.salon.models.service.entity.SalonService service = salonServiceRepository.findById(request.serviceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
 
         if (!service.getActive()) {
@@ -122,7 +122,7 @@ public class AppointmentService {
 
         for (Appointment apt : existingAppointments) {
             LocalDateTime aptStart = apt.getScheduledAt();
-            LocalDateTime aptEnd = aptStart.plusMinutes(apt.getService().getDurationMin());
+            LocalDateTime aptEnd = aptStart.plusMinutes(apt.getSalonService().getDurationMin());
 
             if ((request.scheduledAt().isEqual(aptStart) || request.scheduledAt().isAfter(aptStart)) && request.scheduledAt().isBefore(aptEnd) ||
                 (requestEnd.isAfter(aptStart) && (requestEnd.isEqual(aptEnd) || requestEnd.isBefore(aptEnd)))) {

@@ -107,19 +107,19 @@ Status legend: `[ ]` todo · `[x]` done · `[-]` in progress
 - [x] Implement `ReportController`
   - [x] `GET /reports/financial?from=&to=` — revenue, expenses, net per period
   - [x] `GET /reports/appointments?from=&to=` — counts by status, by employee, by service
-- [ ] Unit tests for report aggregation logic
+- [x] Unit tests for report aggregation logic
 
 ### Frontend
 - [x] Implement `Dashboard` page
   - [x] KPI cards: appointments today, revenue this month, active clients, active employees
-  - [ ] Line chart: revenue last 30 days (Recharts)
-  - [ ] Bar chart: appointments per employee this month
+  - [x] Line chart: revenue last 30 days (Recharts)
+  - [x] Bar chart: appointments per employee this month
 - [x] Implement `CashFlow` page (table + add entry form + delete)
 - [x] Implement `Reports` page
   - [x] Date range picker
   - [x] Financial summary (revenue, expenses, net)
   - [x] Appointments breakdown chart
-  - [ ] Export to PDF (jsPDF)
+  - [x] Export to PDF (jsPDF)
 
 ---
 

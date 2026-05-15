@@ -17,40 +17,40 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/services")
 @RequiredArgsConstructor
-@Tag(name = "Services", description = "Endpoints para gerenciamento de serviços de beleza")
+@Tag(name = "Services", description = "Endpoints para gerenciamento de serviços do salão")
 public class SalonServiceController {
 
     private final SalonServiceManager salonServiceManager;
 
     @GetMapping
     @Operation(summary = "Lista todos os serviços (Público)")
-    public ResponseEntity<List<ServiceResponse>> findAll() {
+    public ResponseEntity<List<SalonServiceResponse>> findAll() {
         return ResponseEntity.ok(salonServiceManager.findAll());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca um serviço por ID (Público)")
-    public ResponseEntity<ServiceResponse> findById(@PathVariable Long id) {
+    public ResponseEntity<SalonServiceResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(salonServiceManager.findById(id));
     }
 
     @PostMapping
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
     @Operation(summary = "Cria um novo serviço (Admin)")
-    public ResponseEntity<ServiceResponse> create(@Valid @RequestBody SalonServiceRequest request) {
+    public ResponseEntity<SalonServiceResponse> create(@Valid @RequestBody SalonServiceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(salonServiceManager.create(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
     @Operation(summary = "Atualiza um serviço (Admin)")
-    public ResponseEntity<ServiceResponse> update(@PathVariable Long id, @Valid @RequestBody SalonServiceRequest request) {
+    public ResponseEntity<SalonServiceResponse> update(@PathVariable Long id, @Valid @RequestBody SalonServiceRequest request) {
         return ResponseEntity.ok(salonServiceManager.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
-    @Operation(summary = "Remove um serviço (Admin)")
+    @Operation(summary = "Exclui um serviço logicamente (Admin)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         salonServiceManager.delete(id);
         return ResponseEntity.noContent().build();

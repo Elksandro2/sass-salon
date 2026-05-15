@@ -19,9 +19,9 @@ public class SalonServiceManager {
     private final SalonServiceRepository salonServiceRepository;
 
     @Transactional(readOnly = true)
-    public List<ServiceResponse> findAll() {
+    public List<SalonServiceResponse> findAll() {
         return salonServiceRepository.findAll().stream()
-                .map(ServiceResponse::fromEntity)
+                .map(SalonServiceResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
@@ -33,8 +33,8 @@ public class SalonServiceManager {
     }
 
     @Transactional
-    public SalonServiceResponse create(ServiceRequest request) {
-        SalonService service = new Service();
+    public SalonServiceResponse create(SalonServiceRequest request) {
+        SalonService service = new SalonService();
         service.setName(request.name());
         service.setDescription(request.description());
         service.setPrice(request.price());
@@ -60,9 +60,10 @@ public class SalonServiceManager {
 
     @Transactional
     public void delete(Long id) {
-        if (!salonServiceRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Serviço não encontrado");
-        }
-        salonServiceRepository.deleteById(id);
+        SalonService service = salonServiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
+        // Soft delete (desativar)
+        service.setActive(false);
+        salonServiceRepository.save(service);
     }
 }

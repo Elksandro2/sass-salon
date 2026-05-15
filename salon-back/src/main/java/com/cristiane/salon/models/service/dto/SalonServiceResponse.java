@@ -12,8 +12,8 @@ public record SalonServiceResponse(
         Integer durationMin,
         Boolean active
 ) {
-    public static SalonServiceResponse fromEntity(Service service) {
-        return new ServiceResponse(
+    public static SalonServiceResponse fromEntity(SalonService service) {
+        return new SalonServiceResponse(
                 service.getId(),
                 service.getName(),
                 service.getDescription(),
