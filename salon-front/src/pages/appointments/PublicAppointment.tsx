@@ -8,6 +8,7 @@ import { employeesApi } from '../admin/employees/services/employees';
 import type { EmployeeData } from '../admin/employees/services/employees';
 import { appointmentsApi } from './services/appointments';
 import { useAuth } from '../../hooks/useAuth';
+import { getApiErrorMessage } from '../../utils/apiError';
 import './PublicAppointment.css';
 
 function priceTagLabel(price: number | null | undefined): string | null {
@@ -123,8 +124,8 @@ export const PublicAppointment = () => {
       });
       localStorage.removeItem('pending_appointment');
       navigate('/my-appointments');
-    } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || 'Erro ao enviar solicitação.');
+    } catch (error: unknown) {
+      setErrorMsg(getApiErrorMessage(error, 'Erro ao enviar solicitação.'));
     } finally {
       setIsLoading(false);
     }

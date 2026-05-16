@@ -27,9 +27,12 @@ export interface AppointmentResponse {
 
 function buildCreatePayload(request: AppointmentRequestBody): Record<string, unknown> {
   const body: Record<string, unknown> = {
-    employeeId: request.employeeId,
-    serviceId: request.serviceId
+    employeeId: Number(request.employeeId),
+    serviceId: Number(request.serviceId)
   };
+  if (!Number.isFinite(body.employeeId as number) || !Number.isFinite(body.serviceId as number)) {
+    throw new Error('IDs inválidos');
+  }
   if (request.scheduledAt != null && String(request.scheduledAt).trim() !== '') {
     body.scheduledAt = request.scheduledAt;
   }

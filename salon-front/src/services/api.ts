@@ -1,8 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
+const API_BASE = 'http://localhost:8080/v1';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080/v1',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -48,7 +50,15 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const status = error.response?.status;
+    const sentBearer = !!originalRequest.headers?.Authorization?.toString().startsWith('Bearer ');
+    const shouldTryRefresh =
+      !originalRequest._retry &&
+      sentBearer &&
+      (status === 401 || status === 403) &&
+      !originalRequest.url?.includes('/auth/refresh');
+
+    if (shouldTryRefresh) {
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -77,7 +87,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post('http://localhost:8080/v1/auth/refresh', {
+        const { data } = await axios.post(`${API_BASE}/auth/refresh`, {
           refreshToken,
         });
 
@@ -106,4 +116,5 @@ api.interceptors.response.use(
   }
 );
 
+export { API_BASE };
 export default api;
