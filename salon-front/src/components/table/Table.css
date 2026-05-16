@@ -1,10 +1,51 @@
 /* Table.css */
-.table {
-  vertical-align: middle;
+.table-container {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
 }
 
-.table th {
+.custom-table {
+  --bs-table-bg: transparent;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* space between rows */
+  margin-top: -8px;
+}
+
+.custom-table th {
   font-weight: 600;
-  color: var(--secondary-color);
-  border-bottom: 2px solid var(--border-color);
+  color: var(--text-light);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  border: none;
+  padding: 1rem;
+}
+
+.custom-table td {
+  background-color: #fff;
+  border-top: 1px solid var(--border-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 1.25rem 1rem;
+  vertical-align: middle;
+  border-left: none;
+  border-right: none;
+  color: var(--text-dark);
+}
+
+.custom-table td:first-child {
+  border-left: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.custom-table td:last-child {
+  border-right: 1px solid var(--border-color) !important;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.custom-table tr:hover td {
+  background-color: var(--bg-color);
+  transition: background-color 0.2s ease;
 }

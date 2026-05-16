@@ -47,8 +47,8 @@ export function Table<T>({
         </div>
       )}
 
-      <BSTable striped bordered hover responsive>
-        <thead className="table-dark">
+      <BSTable responsive className="custom-table" borderless>
+        <thead>
           <tr>
             {columns.map((col, index) => (
               <th key={String(col.key) + index}>{col.label}</th>
