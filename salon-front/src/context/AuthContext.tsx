@@ -1,9 +1,7 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import type { JwtPayload, UserContextData } from '../types/auth';
-import { API_BASE } from '../services/api';
 
 interface AuthContextType {
   user: UserContextData | null;
@@ -20,71 +18,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
+    const token = localStorage.getItem('@Salon:token');
 
-    const applyUserFromAccessToken = (accessToken: string) => {
-      const decoded = jwtDecode<JwtPayload>(accessToken);
-      setUser({
-        email: decoded.sub,
-        role: decoded.role,
-        userId: decoded.userId,
-        authorities: decoded.authorities || [],
-      });
-    };
-
-    const clearAuth = () => {
-      localStorage.removeItem('@Salon:token');
-      localStorage.removeItem('@Salon:refreshToken');
-      setUser(null);
-    };
-
-    const init = async () => {
-      const token = localStorage.getItem('@Salon:token');
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      let accessToken = token;
-
+    if (token) {
       try {
-        const decoded = jwtDecode<JwtPayload>(accessToken);
-        const nowSec = Date.now() / 1000;
-        if (decoded.exp <= nowSec) {
-          const refreshToken = localStorage.getItem('@Salon:refreshToken');
-          if (!refreshToken) {
-            clearAuth();
-            setIsLoading(false);
-            return;
-          }
-          try {
-            const { data } = await axios.post<{ accessToken: string; refreshToken: string }>(
-              `${API_BASE}/auth/refresh`,
-              { refreshToken }
-            );
-            if (cancelled) return;
-            localStorage.setItem('@Salon:token', data.accessToken);
-            localStorage.setItem('@Salon:refreshToken', data.refreshToken);
-            accessToken = data.accessToken;
-          } catch {
-            if (!cancelled) clearAuth();
-            setIsLoading(false);
-            return;
-          }
-        }
-
-        if (!cancelled) applyUserFromAccessToken(accessToken);
+        const decoded = jwtDecode<JwtPayload>(token);
+        setUser({
+          email: decoded.sub,
+          role: decoded.role,
+          userId: decoded.userId,
+          authorities: decoded.authorities || [],
+        });
       } catch {
-        if (!cancelled) clearAuth();
-      } finally {
-        if (!cancelled) setIsLoading(false);
+        localStorage.removeItem('@Salon:token');
+        localStorage.removeItem('@Salon:refreshToken');
       }
-    };
-
-    void init();
-    return () => {
-      cancelled = true;
-    };
+    }
+    setIsLoading(false);
   }, []);
 
   const login = useCallback((accessToken: string, refreshToken: string) => {
