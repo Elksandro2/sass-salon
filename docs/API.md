@@ -157,6 +157,11 @@ Base URL: `/v1` — All responses in JSON. Protected routes require `Authorizati
 
 ## Flyway Migrations
 
+> ⚠️ **WARNING FOR DEVELOPERS AND AI AGENTS:**
+> **NEVER** edit a Flyway migration file once it has been run or committed (e.g., `V1__`, `V2__`, `V3__`, `V4__`). 
+> Modifying an existing migration will break the checksums and cause Flyway to fail on startup.
+> If a database schema change is needed, **ALWAYS** create a new versioned migration file (e.g., `V5__your_change.sql`).
+
 | Version | File                               | Creates                                          |
 |---------|------------------------------------|--------------------------------------------------|
 | V1      | `V1__create_security_tables.sql`   | `tb_role`, `tb_permission`, `tb_user`, join tables |

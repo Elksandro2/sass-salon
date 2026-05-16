@@ -74,6 +74,13 @@ npm run dev
 - All endpoints versioned under `/v1`
 - Security: JWT + Roles + granular Authorities per endpoint/HTTP method
 
+## Instructions for AI Agents
+
+When assisting with development in this repository, **you must ensure that code updates are broken down into small, atomic commits grouped by functionality**. 
+- Do not batch unrelated changes into single large commits.
+- Suggest and create individual commits for distinct units of work (e.g., one commit for a new endpoint, another for its frontend integration).
+- Provide descriptive commit messages that clearly explain the specific functionality added or changed.
+
 ## Roadmap
 
 - WhatsApp notifications
