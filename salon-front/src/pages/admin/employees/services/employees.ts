@@ -14,6 +14,12 @@ export const employeesApi = {
     return data;
   },
 
+  /** Lista funcionárias para o fluxo de agendamento público (sem expor email). */
+  findAllForBooking: async () => {
+    const { data } = await api.get<EmployeeData[]>('/employees/booking');
+    return data;
+  },
+
   findById: async (id: number) => {
     const { data } = await api.get<EmployeeData>(`/employees/${id}`);
     return data;

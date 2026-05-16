@@ -2,6 +2,7 @@ package com.cristiane.salon.models.employee.service;
 
 import com.cristiane.salon.exception.BadRequestException;
 import com.cristiane.salon.exception.ResourceNotFoundException;
+import com.cristiane.salon.models.employee.dto.EmployeeBookingResponse;
 import com.cristiane.salon.models.employee.dto.EmployeeRequest;
 import com.cristiane.salon.models.employee.dto.EmployeeResponse;
 import com.cristiane.salon.models.employee.entity.Employee;
@@ -26,6 +27,13 @@ public class EmployeeService {
     public List<EmployeeResponse> findAll() {
         return employeeRepository.findAll().stream()
                 .map(EmployeeResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmployeeBookingResponse> findAllForBooking() {
+        return employeeRepository.findAll().stream()
+                .map(EmployeeBookingResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 

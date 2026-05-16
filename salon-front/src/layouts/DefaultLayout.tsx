@@ -16,8 +16,12 @@ export const DefaultLayout = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mx-auto nav-links">
-              <Nav.Link as={NavLink} to="/services" className={({ isActive }: any) => isActive ? "active-link" : ""}>Nossos Serviços</Nav.Link>
-              <Nav.Link as={NavLink} to="/appointment" className={({ isActive }: any) => isActive ? "active-link" : ""}>Agendamento</Nav.Link>
+              <NavLink to="/services" className={({ isActive }) => `nav-link${isActive ? ' active-link' : ''}`}>
+                Nossos Serviços
+              </NavLink>
+              <NavLink to="/appointment" className={({ isActive }) => `nav-link${isActive ? ' active-link' : ''}`}>
+                Agendamento
+              </NavLink>
             </Nav>
             <Nav className="nav-actions">
               {isAuthenticated ? (

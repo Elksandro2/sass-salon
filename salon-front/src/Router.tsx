@@ -9,6 +9,7 @@ import { Products } from './pages/admin/products/Products';
 import { Users } from './pages/admin/users/Users';
 import { Employees } from './pages/admin/employees/Employees';
 import { PublicServices } from './pages/services/PublicServices';
+import { PublicHome } from './pages/home/PublicHome';
 import { PublicAppointment } from './pages/appointments/PublicAppointment';
 import { MyAppointments } from './pages/appointments/MyAppointments';
 import { AdminAppointments } from './pages/admin/appointments/AdminAppointments';
@@ -21,7 +22,7 @@ export const Router = () => {
   return (
     <Routes>
       <Route element={<DefaultLayout />}>
-        <Route path="/" element={<div>Home (Pública)</div>} />
+        <Route path="/" element={<PublicHome />} />
         <Route path="/services" element={<PublicServices />} />
         <Route path="/appointment" element={<PublicAppointment />} />
         <Route path="/login" element={<Login />} />

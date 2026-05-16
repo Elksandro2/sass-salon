@@ -19,7 +19,8 @@ export const Login = () => {
     try {
       const response = await axios.post('http://localhost:8080/v1/auth/login', data);
       login(response.data.accessToken, response.data.refreshToken);
-      navigate('/'); // Or redirect based on role
+      const pending = localStorage.getItem('pending_appointment');
+      navigate(pending ? '/appointment' : '/');
     } catch (err: any) {
       if (err.response?.data?.message) {
         setErrorMsg(err.response.data.message);

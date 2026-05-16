@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Form, Alert, Spinner } from 'react-bootstrap';
+import { Form, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Clock, User as UserIcon, Calendar, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { salonServicesApi } from '../services/services/services';
@@ -30,16 +30,40 @@ export const PublicAppointment = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const raw = localStorage.getItem('pending_appointment');
+    if (raw) {
+      try {
+        const p = JSON.parse(raw) as {
+          serviceId?: number;
+          employeeId?: number;
+          date?: string;
+          time?: string;
+        };
+        if (p.serviceId) setSelectedService(p.serviceId);
+        if (p.employeeId) setSelectedEmployee(p.employeeId);
+        if (p.date) setSelectedDate(p.date);
+        if (p.time) setSelectedTime(p.time);
+        if (p.serviceId && p.employeeId && p.date && p.time) setStep(4);
+        else if (p.serviceId && p.employeeId) setStep(3);
+        else if (p.serviceId) setStep(2);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const [servicesData, employeesData] = await Promise.all([
           salonServicesApi.findAll(),
-          employeesApi.findAll()
+          employeesApi.findAllForBooking()
         ]);
         setServices(servicesData.filter(s => s.active));
         setEmployees(employeesData);
       } catch (error) {
         console.error('Erro ao buscar dados', error);
+        setErrorMsg('Não foi possível carregar serviços ou profissionais. Tente novamente em instantes.');
       } finally {
         setIsInitialLoading(false);
       }
@@ -99,6 +123,7 @@ export const PublicAppointment = () => {
         employeeId: selectedEmployee!,
         scheduledAt: `${selectedDate}T${selectedTime}`
       });
+      localStorage.removeItem('pending_appointment');
       navigate('/my-appointments');
     } catch (error: any) {
       setErrorMsg(error.response?.data?.message || 'Erro ao agendar.');
@@ -178,7 +203,7 @@ export const PublicAppointment = () => {
                 >
                   <div className="d-flex align-items-center gap-3">
                     <div className="avatar-placeholder">
-                      {emp.name.charAt(0)}
+                      {(emp.name ?? 'P').charAt(0)}
                     </div>
                     <div>
                       <h5 className="mb-0">{emp.name}</h5>

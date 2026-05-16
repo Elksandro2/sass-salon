@@ -1,5 +1,6 @@
 package com.cristiane.salon.controller;
 
+import com.cristiane.salon.models.employee.dto.EmployeeBookingResponse;
 import com.cristiane.salon.models.employee.dto.EmployeeRequest;
 import com.cristiane.salon.models.employee.dto.EmployeeResponse;
 import com.cristiane.salon.models.employee.service.EmployeeService;
@@ -27,6 +28,13 @@ public class EmployeeController {
     @Operation(summary = "Lista todas as funcionárias (Admin)")
     public ResponseEntity<List<EmployeeResponse>> findAll() {
         return ResponseEntity.ok(employeeService.findAll());
+    }
+
+    @GetMapping("/booking")
+    @PreAuthorize("permitAll()")
+    @Operation(summary = "Lista funcionárias para agendamento (público)")
+    public ResponseEntity<List<EmployeeBookingResponse>> findAllForBooking() {
+        return ResponseEntity.ok(employeeService.findAllForBooking());
     }
 
     @GetMapping("/{id}")
