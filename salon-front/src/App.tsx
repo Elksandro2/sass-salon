@@ -1,7 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Router } from './Router';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './Global.css';
 
 function App() {
   return (
