@@ -21,7 +21,11 @@ public class VerifyUserPermissions {
             return false;
         }
 
-        User logged = (User) auth.getPrincipal();
+        Object principal = auth.getPrincipal();
+        if (!(principal instanceof User)) {
+            return false;
+        }
+        User logged = (User) principal;
 
         // Check explicit permission via endpoint/method
         if (permissionEvaluator.hasPermission(auth, request.getRequestURI(), request.getMethod())) {
