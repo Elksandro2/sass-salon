@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -37,6 +38,13 @@ public class AppointmentService {
     private final SalonServiceRepository salonServiceRepository;
     private final UserRepository userRepository;
     private final CashFlowRepository cashFlowRepository;
+
+    private static int blockingMinutes(SalonService service) {
+        if (service.getDurationMin() != null && service.getDurationMin() > 0) {
+            return service.getDurationMin();
+        }
+        return 60;
+    }
 
     private User getAuthenticatedUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -57,14 +65,14 @@ public class AppointmentService {
                 scheduledAt.toLocalDate().atTime(LocalTime.MAX)
         );
 
-        LocalDateTime requestEnd = scheduledAt.plusMinutes(service.getDurationMin());
+        LocalDateTime requestEnd = scheduledAt.plusMinutes(blockingMinutes(service));
 
         for (Appointment apt : existing) {
             if (ignoreAppointmentId != null && apt.getId().equals(ignoreAppointmentId)) {
                 continue;
             }
             LocalDateTime aptStart = apt.getScheduledAt();
-            LocalDateTime aptEnd = aptStart.plusMinutes(apt.getSalonService().getDurationMin());
+            LocalDateTime aptEnd = aptStart.plusMinutes(blockingMinutes(apt.getSalonService()));
 
             boolean overlaps = scheduledAt.isBefore(aptEnd) && aptStart.isBefore(requestEnd);
             if (overlaps) {
@@ -105,6 +113,10 @@ public class AppointmentService {
             }
             assertNoScheduleConflict(employee.getId(), request.scheduledAt(), service, null);
 
+            if (request.preferredDate() != null && request.preferredDate().isBefore(LocalDate.now())) {
+                throw new BadRequestException("A data preferida deve ser hoje ou uma data futura");
+            }
+
             Appointment appointment = new Appointment();
             appointment.setClient(client);
             appointment.setEmployee(employee);
@@ -117,16 +129,12 @@ public class AppointmentService {
             return AppointmentResponse.fromEntity(appointmentRepository.save(appointment));
         }
 
-        if (isStaff(currentUser)) {
-            throw new BadRequestException("Para criar solicitação como equipe, informe o cliente");
-        }
-
-        if (!"CLIENTE".equals(currentUser.getRoleName())) {
-            throw new BadRequestException("Apenas clientes podem enviar solicitação por este fluxo");
-        }
-
         if (request.scheduledAt() != null) {
             throw new BadRequestException("O horário será definido pelo salão após aceitar seu pedido");
+        }
+
+        if (request.preferredDate() != null && request.preferredDate().isBefore(LocalDate.now())) {
+            throw new BadRequestException("A data preferida deve ser hoje ou uma data futura");
         }
 
         String notes = request.clientNotes();

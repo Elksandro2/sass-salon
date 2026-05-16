@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Row, Col, Spinner } from 'react-bootstrap';
-import { salonServicesApi } from './services/services';
+import { salonServicesApi, displayServiceDuration } from './services/services';
 import type { SalonServiceData } from './services/services';
 import './PublicServices.css';
 
@@ -51,7 +51,7 @@ export const PublicServices = () => {
                 <div className="service-footer">
                   <div className="duration-tag">
                     <span className="duration-icon">⏱</span>
-                    <span>{service.durationMin} min</span>
+                    <span>{displayServiceDuration(service)}</span>
                   </div>
                 </div>
               </div>

@@ -10,6 +10,7 @@ public record SalonServiceResponse(
         String description,
         BigDecimal price,
         Integer durationMin,
+        String durationEstimate,
         Boolean active
 ) {
     public static SalonServiceResponse fromEntity(SalonService service) {
@@ -19,6 +20,7 @@ public record SalonServiceResponse(
                 service.getDescription(),
                 service.getPrice(),
                 service.getDurationMin(),
+                service.getDurationEstimate(),
                 service.getActive()
         );
     }

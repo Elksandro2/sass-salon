@@ -6,7 +6,7 @@ import { Table } from '../../../components/table/Table';
 import { ModalForm } from '../../../components/modal/ModalForm';
 import { ConfirmDialog } from '../../../components/modal/ConfirmDialog';
 import { PermissionGate } from '../../../components/permissions/PermissionGate';
-import { salonServicesApi } from '../../services/services/services';
+import { salonServicesApi, displayServiceDuration } from '../../services/services/services';
 import type { SalonServiceData } from '../../services/services/services';
 
 export const AdminServices = () => {
@@ -45,7 +45,8 @@ export const AdminServices = () => {
       setValue('name', service.name);
       setValue('description', service.description);
       setValue('price', service.price ?? undefined);
-      setValue('durationMin', service.durationMin);
+      setValue('durationMin', service.durationMin ?? undefined);
+      setValue('durationEstimate', service.durationEstimate ?? '');
       setValue('active', service.active);
     } else {
       setEditingService(null);
@@ -55,8 +56,19 @@ export const AdminServices = () => {
   };
 
   const onSubmit = async (data: SalonServiceData) => {
+    const hasEst = (data.durationEstimate ?? '').trim().length > 0;
+    const hasMin = data.durationMin != null && Number(data.durationMin) > 0;
+    if (!hasEst && !hasMin) {
+      alert('Informe o tempo estimado em texto (ex.: em média 50 min) e/ou minutos para encaixe na agenda.');
+      return;
+    }
     try {
-      const payload = { ...data, price: data.price ?? null };
+      const payload: SalonServiceData = {
+        ...data,
+        price: data.price ?? null,
+        durationEstimate: hasEst ? data.durationEstimate!.trim() : null,
+        durationMin: hasMin ? Number(data.durationMin) : null
+      };
       if (editingService?.id) {
         await salonServicesApi.update(editingService.id, payload);
       } else {
@@ -91,9 +103,9 @@ export const AdminServices = () => {
         item.price != null ? `A partir de R$ ${item.price.toFixed(2)}` : '—'
     },
     { 
-      key: 'durationMin', 
-      label: 'Duração (min)',
-      render: (item: SalonServiceData) => `${item.durationMin} min`
+      key: 'duration', 
+      label: 'Tempo estimado',
+      render: (item: SalonServiceData) => displayServiceDuration(item)
     },
     { 
       key: 'active', 
@@ -192,13 +204,27 @@ export const AdminServices = () => {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Duração (minutos)</Form.Label>
+          <Form.Label>Tempo estimado (mostrado ao cliente)</Form.Label>
+          <Form.Control 
+            type="text" 
+            placeholder="Ex.: Em média 50 min · Em média 1h20"
+            {...register('durationEstimate')}
+          />
+          <Form.Text className="text-muted">
+            Texto livre. Obrigatório informar isto ou os minutos abaixo (ou ambos).
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Minutos para encaixe na agenda (opcional)</Form.Label>
           <Form.Control 
             type="number" 
-            {...register('durationMin', { required: 'Duração é obrigatória', min: { value: 1, message: 'Mín. 1 minuto'} })}
-            isInvalid={!!errors.durationMin}
+            min={1}
+            placeholder="Só números — ajuda a evitar sobreposição de horários"
+            {...register('durationMin', {
+              setValueAs: (v) => (v === '' || v === undefined || v === null ? undefined : Number(v))
+            })}
           />
-          <Form.Control.Feedback type="invalid">{errors.durationMin?.message}</Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3">

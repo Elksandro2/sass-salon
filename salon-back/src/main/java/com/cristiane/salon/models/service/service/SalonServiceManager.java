@@ -35,6 +35,8 @@ public class SalonServiceManager {
 
     @Transactional
     public SalonServiceResponse create(SalonServiceRequest request) {
+        validateDuration(request.durationMin(), request.durationEstimate());
+
         SalonService service = new SalonService();
         service.setName(request.name());
         service.setDescription(request.description());
@@ -43,6 +45,7 @@ public class SalonServiceManager {
         }
         service.setPrice(request.price());
         service.setDurationMin(request.durationMin());
+        service.setDurationEstimate(blankToNull(request.durationEstimate()));
         service.setActive(request.active() != null ? request.active() : true);
 
         return SalonServiceResponse.fromEntity(salonServiceRepository.save(service));
@@ -59,8 +62,11 @@ public class SalonServiceManager {
         if (request.name() != null) service.setName(request.name());
         if (request.description() != null) service.setDescription(request.description());
         service.setPrice(request.price());
-        if (request.durationMin() != null) service.setDurationMin(request.durationMin());
+        service.setDurationMin(request.durationMin());
+        service.setDurationEstimate(blankToNull(request.durationEstimate()));
         if (request.active() != null) service.setActive(request.active());
+
+        validateDuration(service.getDurationMin(), service.getDurationEstimate());
 
         return SalonServiceResponse.fromEntity(salonServiceRepository.save(service));
     }
@@ -69,8 +75,20 @@ public class SalonServiceManager {
     public void delete(Long id) {
         SalonService service = salonServiceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
-        // Soft delete (desativar)
         service.setActive(false);
         salonServiceRepository.save(service);
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
+    }
+
+    private static void validateDuration(Integer durationMin, String durationEstimate) {
+        boolean hasMin = durationMin != null && durationMin > 0;
+        boolean hasEst = durationEstimate != null && !durationEstimate.isBlank();
+        if (!hasMin && !hasEst) {
+            throw new BadRequestException(
+                    "Informe o tempo estimado (ex.: em média 50 min) ou duração em minutos para uso interno na agenda.");
+        }
     }
 }

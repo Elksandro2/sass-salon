@@ -25,9 +25,29 @@ export interface AppointmentResponse {
   status: string;
 }
 
+function buildCreatePayload(request: AppointmentRequestBody): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    employeeId: request.employeeId,
+    serviceId: request.serviceId
+  };
+  if (request.scheduledAt != null && String(request.scheduledAt).trim() !== '') {
+    body.scheduledAt = request.scheduledAt;
+  }
+  if (request.clientId != null) {
+    body.clientId = request.clientId;
+  }
+  if (request.preferredDate != null && String(request.preferredDate).trim() !== '') {
+    body.preferredDate = request.preferredDate;
+  }
+  if (request.clientNotes != null && request.clientNotes.trim() !== '') {
+    body.clientNotes = request.clientNotes.trim();
+  }
+  return body;
+}
+
 export const appointmentsApi = {
   create: async (request: AppointmentRequestBody) => {
-    const { data } = await api.post<AppointmentResponse>('/appointments', request);
+    const { data } = await api.post<AppointmentResponse>('/appointments', buildCreatePayload(request));
     return data;
   },
 

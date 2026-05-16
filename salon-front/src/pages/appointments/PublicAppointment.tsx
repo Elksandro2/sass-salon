@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Form, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Clock, User as UserIcon, Calendar, CheckCircle, ArrowLeft, ArrowRight, MessageSquare } from 'lucide-react';
-import { salonServicesApi } from '../services/services/services';
+import { salonServicesApi, displayServiceDuration } from '../services/services/services';
 import type { SalonServiceData } from '../services/services/services';
 import { employeesApi } from '../admin/employees/services/employees';
 import type { EmployeeData } from '../admin/employees/services/employees';
@@ -13,6 +13,14 @@ import './PublicAppointment.css';
 function priceTagLabel(price: number | null | undefined): string | null {
   if (price == null || Number.isNaN(price)) return null;
   return `A partir de R$ ${price.toFixed(2)}`;
+}
+
+function localTodayIso(): string {
+  const n = new Date();
+  const y = n.getFullYear();
+  const m = String(n.getMonth() + 1).padStart(2, '0');
+  const d = String(n.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 export const PublicAppointment = () => {
@@ -76,6 +84,13 @@ export const PublicAppointment = () => {
   const handleNext = () => {
     if (step === 1 && !selectedService) return;
     if (step === 2 && !selectedEmployee) return;
+    if (step === 3) {
+      if (preferredDate && preferredDate < localTodayIso()) {
+        setErrorMsg('A data de preferência deve ser hoje ou uma data futura.');
+        return;
+      }
+      setErrorMsg('');
+    }
     setStep(step + 1);
     window.scrollTo(0, 0);
   };
@@ -173,7 +188,7 @@ export const PublicAppointment = () => {
                     <p className="text-muted small mb-2">{srv.description || 'Tratamento especializado para você.'}</p>
                     <div className="duration">
                       <Clock size={14} />
-                      {srv.durationMin} minutos
+                      {displayServiceDuration(srv)}
                     </div>
                   </div>
                 );
@@ -220,6 +235,7 @@ export const PublicAppointment = () => {
               <Form.Control
                 type="date"
                 className="custom-input"
+                min={localTodayIso()}
                 value={preferredDate}
                 onChange={(e) => setPreferredDate(e.target.value)}
               />
@@ -249,16 +265,16 @@ export const PublicAppointment = () => {
                 <h5>Resumo da solicitação</h5>
               </div>
               <div className="summary-body">
-                <div className="summary-item">
+                <div className="summary-row">
                   <span className="summary-label">Serviço</span>
                   <span className="summary-value">{selectedSrv?.name}</span>
                 </div>
-                <div className="summary-item">
+                <div className="summary-row">
                   <span className="summary-label">Profissional</span>
                   <span className="summary-value">{employees.find(e => e.id === selectedEmployee)?.name}</span>
                 </div>
                 {preferredDate ? (
-                  <div className="summary-item">
+                  <div className="summary-row">
                     <span className="summary-label">Dia preferido</span>
                     <span className="summary-value">
                       {new Date(preferredDate + 'T12:00:00').toLocaleDateString('pt-BR')}
@@ -266,18 +282,18 @@ export const PublicAppointment = () => {
                   </div>
                 ) : null}
                 {clientNotes.trim() ? (
-                  <div className="summary-item align-items-start">
+                  <div className="summary-row summary-row--notes">
                     <span className="summary-label">Observações</span>
-                    <span className="summary-value text-start">{clientNotes.trim()}</span>
+                    <p className="summary-notes">{clientNotes.trim()}</p>
                   </div>
                 ) : null}
                 {priceLabel ? (
-                  <div className="summary-item pt-3">
+                  <div className="summary-row summary-row--divider">
                     <span className="summary-label fw-bold text-dark">Referência</span>
                     <span className="summary-value text-primary fs-6">{priceLabel}</span>
                   </div>
                 ) : (
-                  <div className="summary-item pt-3">
+                  <div className="summary-row summary-row--divider">
                     <span className="summary-label text-muted">Valor</span>
                     <span className="summary-value text-muted fs-6">Definido no atendimento / caixa</span>
                   </div>
