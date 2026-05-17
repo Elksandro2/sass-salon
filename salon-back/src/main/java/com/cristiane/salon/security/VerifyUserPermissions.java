@@ -32,13 +32,24 @@ public class VerifyUserPermissions {
             return true;
         }
 
-        // For actions like deleting or creating another user, explicit permission is required.
-        // User cannot delete themselves unless they have permission, nor can they create (POST).
-        if ("DELETE".equalsIgnoreCase(request.getMethod()) || "POST".equalsIgnoreCase(request.getMethod())) {
+        // For DELETE requests, explicit permission is required
+        if ("DELETE".equalsIgnoreCase(request.getMethod())) {
             return false;
         }
 
-        // Allow if user is modifying/reading their own profile
-        return logged.getId().equals(userId);
+        // For POST requests without explicit permission, deny
+        if ("POST".equalsIgnoreCase(request.getMethod())) {
+            return false;
+        }
+
+        // For GET/PATCH/PUT on specific resource, check if user owns it (userId provided)
+        // If userId is null, it means generic endpoint - already checked by hasPermission above
+        if (userId != null) {
+            return logged.getId().equals(userId);
+        }
+
+        // Generic endpoints (userId=null) on GET/PATCH/PUT need explicit permission
+        // If we reach here without explicit permission, deny access
+        return false;
     }
 }

@@ -24,7 +24,7 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
     @Operation(summary = "Cliente solicita agenda ou equipe cria agendamento com horário")
     public ResponseEntity<AppointmentResponse> create(@Valid @RequestBody AppointmentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(appointmentService.create(request));

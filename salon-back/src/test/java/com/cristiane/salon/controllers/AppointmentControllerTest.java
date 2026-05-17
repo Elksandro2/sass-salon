@@ -66,7 +66,7 @@ class AppointmentControllerTest {
         mvc.perform(post("/v1/appointments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
-                .andExpect(status().isCreated());
+                .andExpect(status().isForbidden());
     }
 
     @TestConfiguration
