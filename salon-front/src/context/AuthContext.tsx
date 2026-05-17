@@ -6,7 +6,7 @@ import type { JwtPayload, UserContextData } from '../types/auth';
 interface AuthContextType {
   user: UserContextData | null;
   isAuthenticated: boolean;
-  login: (accessToken: string, refreshToken: string) => void;
+  login: (accessToken: string, refreshToken: string, redirect?: boolean) => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -37,18 +37,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  const login = useCallback((accessToken: string, refreshToken: string) => {
+  const login = useCallback((accessToken: string, refreshToken: string, redirect = true) => {
     localStorage.setItem('@Salon:token', accessToken);
     localStorage.setItem('@Salon:refreshToken', refreshToken);
 
     const decoded = jwtDecode<JwtPayload>(accessToken);
     
-    setUser({
+    const userData: UserContextData = {
       email: decoded.sub,
       role: decoded.role,
       userId: decoded.userId,
       authorities: decoded.authorities || [],
-    });
+    };
+
+    setUser(userData);
+
+    // Redirecionar admin para dashboard automaticamente
+    if (redirect && decoded.role === 'ADMIN') {
+      window.location.href = '/admin/dashboard';
+    }
   }, []);
 
   const logout = useCallback(() => {

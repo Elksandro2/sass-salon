@@ -8,14 +8,6 @@ const api = axios.create({
   },
 });
 
-// Axios simples sem interceptadores para refresh (evita loop infinito)
-const plainAxios = axios.create({
-  baseURL: 'http://localhost:8080/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
@@ -108,6 +100,14 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // Redirecionar para login em caso de 403 (sem permissão mesmo após refresh)
+    if (error.response?.status === 403) {
+      localStorage.removeItem('@Salon:token');
+      localStorage.removeItem('@Salon:refreshToken');
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

@@ -18,7 +18,10 @@ export const Login = () => {
     setErrorMsg('');
     try {
       const response = await api.post('/auth/login', data);
-      login(response.data.accessToken, response.data.refreshToken);
+      // Passa true para redirect automaticamente (admin vai pro dashboard, outros continuam)
+      login(response.data.accessToken, response.data.refreshToken, true);
+      
+      // Se chegou aqui sem redirecionar, é cliente
       const pending = localStorage.getItem('pending_appointment');
       navigate(pending ? '/appointment' : '/');
     } catch (err: any) {

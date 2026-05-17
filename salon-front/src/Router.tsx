@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { DefaultLayout } from './layouts/DefaultLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 import { CustomerLayout } from './layouts/CustomerLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { AdminServices } from './pages/admin/services/AdminServices';
@@ -31,20 +32,97 @@ export const Router = () => {
       </Route>
 
       <Route element={<AdminLayout />}>
-        <Route path="/admin/dashboard" element={<Reports />} />
-        <Route path="/admin/users" element={<Users />} />
-        <Route path="/admin/employees" element={<Employees />} />
-        <Route path="/admin/services" element={<AdminServices />} />
-        <Route path="/admin/products" element={<Products />} />
-        <Route path="/admin/appointments" element={<AdminAppointments />} />
-        <Route path="/admin/cashflow" element={<CashFlow />} />
-        <Route path="/admin/reports" element={<Reports />} />
-        <Route path="/admin/audit" element={<AuditLog />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/employees"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <Employees />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/services"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <AdminServices />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/appointments"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <AdminAppointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/cashflow"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <CashFlow />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/audit"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <AuditLog />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route element={<CustomerLayout />}>
-        <Route path="/my-appointments" element={<MyAppointments />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route
+          path="/my-appointments"
+          element={
+            <ProtectedRoute>
+              <MyAppointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* Catch-all para 404 */}
