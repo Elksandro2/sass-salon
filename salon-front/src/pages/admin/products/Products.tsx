@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../../../components/modal/ConfirmDialog';
 import { PermissionGate } from '../../../components/permissions/PermissionGate';
 import { productsApi } from './services/products';
 import type { ProductData } from './services/products';
+import { getApiErrorMessage } from '../../../utils/apiError';
 import { useAlert } from '../../../hooks/useAlert';
 
 export const Products = () => {
@@ -29,7 +30,8 @@ export const Products = () => {
       const data = await productsApi.findAll();
       setProducts(data);
     } catch (err) {
-      await showError('Erro ao carregar produtos');
+      const msg = getApiErrorMessage(err, 'Erro ao carregar produtos');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +65,8 @@ export const Products = () => {
       setShowForm(false);
       loadProducts();
     } catch (err) {
-      await showError('Erro ao salvar produto. Verifique os dados e tente novamente.');
+      const msg = getApiErrorMessage(err, 'Erro ao salvar produto. Verifique os dados e tente novamente.');
+      await showError(msg);
     }
   };
 
@@ -74,7 +77,8 @@ export const Products = () => {
       setShowConfirm(false);
       loadProducts();
     } catch (err) {
-      await showError('Erro ao excluir produto.');
+      const msg = getApiErrorMessage(err, 'Erro ao excluir produto.');
+      await showError(msg);
     }
   };
 

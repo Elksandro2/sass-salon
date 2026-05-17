@@ -9,6 +9,7 @@ import { PermissionGate } from '../../../components/permissions/PermissionGate';
 import { salonServicesApi, displayServiceDuration } from '../../services/services/services';
 import type { SalonServiceData } from '../../services/services/services';
 import { useAlert } from '../../../hooks/useAlert';
+import { getApiErrorMessage } from '../../../utils/apiError';
 
 export const AdminServices = () => {
   const [services, setServices] = useState<SalonServiceData[]>([]);
@@ -29,7 +30,8 @@ export const AdminServices = () => {
       const data = await salonServicesApi.findAll();
       setServices(data);
     } catch (err) {
-      await showError('Erro ao carregar serviços');
+      const msg = getApiErrorMessage(err, 'Erro ao carregar serviços');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +80,8 @@ export const AdminServices = () => {
       setShowForm(false);
       loadServices();
     } catch (err) {
-      await showError('Erro ao salvar serviço. Verifique os dados e tente novamente.');
+      const msg = getApiErrorMessage(err, 'Erro ao salvar serviço. Verifique os dados e tente novamente.');
+      await showError(msg);
     }
   };
 
@@ -89,7 +92,8 @@ export const AdminServices = () => {
       setShowConfirm(false);
       loadServices();
     } catch (err) {
-      await showError('Erro ao excluir serviço.');
+      const msg = getApiErrorMessage(err, 'Erro ao excluir serviço.');
+      await showError(msg);
     }
   };
 

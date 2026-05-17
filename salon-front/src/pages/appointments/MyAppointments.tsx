@@ -5,6 +5,7 @@ import type { AppointmentResponse } from './services/appointments';
 import { ConfirmDialog } from '../../components/modal/ConfirmDialog';
 import './Appointments.css';
 import { useAlert } from '../../hooks/useAlert';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 export const MyAppointments = () => {
   const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
@@ -37,7 +38,8 @@ export const MyAppointments = () => {
       data.sort((a, b) => sortKey(b) - sortKey(a));
       setAppointments(data);
     } catch (error) {
-      await showError('Erro ao carregar agendamentos');
+        const msg = getApiErrorMessage(error, 'Erro ao carregar agendamentos');
+        await showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +56,8 @@ export const MyAppointments = () => {
       setShowConfirm(false);
       loadAppointments();
     } catch (error) {
-      await showError('Erro ao cancelar agendamento.');
+        const msg = getApiErrorMessage(error, 'Erro ao cancelar agendamento.');
+        await showError(msg);
     }
   };
 

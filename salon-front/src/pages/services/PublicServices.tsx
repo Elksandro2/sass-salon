@@ -4,6 +4,7 @@ import { salonServicesApi, displayServiceDuration } from './services/services';
 import type { SalonServiceData } from './services/services';
 import './PublicServices.css';
 import { useAlert } from '../../hooks/useAlert';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 export const PublicServices = () => {
   const [services, setServices] = useState<SalonServiceData[]>([]);
@@ -16,7 +17,8 @@ export const PublicServices = () => {
         const data = await salonServicesApi.findAll();
         setServices(data.filter(s => s.active));
       } catch (err) {
-        showError('Erro ao carregar serviços');
+        const msg = getApiErrorMessage(err, 'Erro ao carregar serviços');
+        await showError(msg);
       } finally {
         setIsLoading(false);
       }

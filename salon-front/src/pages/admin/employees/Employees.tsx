@@ -9,6 +9,7 @@ import { PermissionGate } from '../../../components/permissions/PermissionGate';
 import { employeesApi } from './services/employees';
 import type { EmployeeData } from './services/employees';
 import { useAlert } from '../../../hooks/useAlert';
+import { getApiErrorMessage } from '../../../utils/apiError';
 
 export const Employees = () => {
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
@@ -29,7 +30,8 @@ export const Employees = () => {
       const data = await employeesApi.findAll();
       setEmployees(data);
     } catch (err) {
-      await showError('Erro ao carregar funcionárias');
+      const msg = getApiErrorMessage(err, 'Erro ao carregar funcionárias');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +63,8 @@ export const Employees = () => {
       setShowForm(false);
       loadEmployees();
     } catch (err) {
-      await showError('Erro ao salvar funcionária. Verifique se o ID de usuário está correto.');
+      const msg = getApiErrorMessage(err, 'Erro ao salvar funcionária. Verifique se o ID de usuário está correto.');
+      await showError(msg);
     }
   };
 
@@ -72,7 +75,8 @@ export const Employees = () => {
       setShowConfirm(false);
       loadEmployees();
     } catch (err) {
-      await showError('Erro ao excluir funcionária.');
+      const msg = getApiErrorMessage(err, 'Erro ao excluir funcionária.');
+      await showError(msg);
     }
   };
 

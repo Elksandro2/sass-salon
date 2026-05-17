@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../../../components/modal/ConfirmDialog';
 import { PermissionGate } from '../../../components/permissions/PermissionGate';
 import { cashFlowApi } from './services/cashflow';
 import type { CashFlowData } from './services/cashflow';
+import { getApiErrorMessage } from '../../../utils/apiError';
 import { useAlert } from '../../../hooks/useAlert';
 
 export const CashFlow = () => {
@@ -30,7 +31,8 @@ export const CashFlow = () => {
       const data = await cashFlowApi.findByPeriod(dateFrom || undefined, dateTo || undefined);
       setCashFlows(data);
     } catch (err) {
-      await showError('Erro ao carregar fluxo de caixa');
+      const msg = getApiErrorMessage(err, 'Erro ao carregar fluxo de caixa');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +56,8 @@ export const CashFlow = () => {
       setShowForm(false);
       loadCashFlows();
     } catch (err) {
-      await showError('Erro ao salvar registro no fluxo de caixa.');
+      const msg = getApiErrorMessage(err, 'Erro ao salvar registro no fluxo de caixa.');
+      await showError(msg);
     }
   };
 
@@ -65,7 +68,8 @@ export const CashFlow = () => {
       setShowConfirm(false);
       loadCashFlows();
     } catch (err) {
-      await showError('Erro ao excluir registro.');
+      const msg = getApiErrorMessage(err, 'Erro ao excluir registro.');
+      await showError(msg);
     }
   };
 

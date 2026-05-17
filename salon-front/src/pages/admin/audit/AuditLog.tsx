@@ -3,6 +3,7 @@ import { Filter } from 'lucide-react';
 import './AuditLog.css';
 import api from '../../../services/api';
 import { useAlert } from '../../../hooks/useAlert';
+import { getApiErrorMessage } from '../../../utils/apiError';
 
 interface AuditLog {
   id: number;
@@ -44,7 +45,8 @@ export const AuditLog = () => {
       setAuditLogs(data.content);
       setTotalItems(data.totalElements);
     } catch (err) {
-      await showError('Erro ao carregar logs de auditoria');
+      const msg = getApiErrorMessage(err, 'Erro ao carregar logs de auditoria');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }

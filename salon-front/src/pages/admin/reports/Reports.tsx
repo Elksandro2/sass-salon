@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download } from 'lucide-react';
 import { useAlert } from '../../../hooks/useAlert';
+import { getApiErrorMessage } from '../../../utils/apiError';
 
 export const Reports = () => {
   const [financial, setFinancial] = useState<FinancialReportResponse | null>(null);
@@ -33,7 +34,8 @@ export const Reports = () => {
       setAppointments(aptData);
       setCashFlows(cfData);
     } catch (err) {
-      await showError('Erro ao carregar relatórios');
+      const msg = getApiErrorMessage(err, 'Erro ao carregar relatórios');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }
