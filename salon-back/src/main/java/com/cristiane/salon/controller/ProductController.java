@@ -1,5 +1,6 @@
 package com.cristiane.salon.controller;
 
+import com.cristiane.salon.annotation.Auditable;
 import com.cristiane.salon.models.product.dto.ProductRequest;
 import com.cristiane.salon.models.product.dto.ProductResponse;
 import com.cristiane.salon.models.product.service.ProductService;
@@ -24,8 +25,8 @@ public class ProductController {
 
     @GetMapping
     @Operation(summary = "Lista todos os produtos (Público)")
-    public ResponseEntity<List<ProductResponse>> findAll() {
-        return ResponseEntity.ok(productService.findAll());
+    public ResponseEntity<List<ProductResponse>> findAll(@RequestParam(required = false) Boolean active) {
+        return ResponseEntity.ok(productService.findAll(active));
     }
 
     @GetMapping("/{id}")
@@ -36,6 +37,7 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "CREATE", entityType = "PRODUCT", captureArgs = true)
     @Operation(summary = "Cria um novo produto (Admin)")
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(request));
@@ -43,6 +45,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "UPDATE", entityType = "PRODUCT", captureArgs = true)
     @Operation(summary = "Atualiza um produto (Admin)")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(productService.update(id, request));
@@ -50,6 +53,7 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "DELETE", entityType = "PRODUCT", captureArgs = true)
     @Operation(summary = "Remove um produto (Admin)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.delete(id);

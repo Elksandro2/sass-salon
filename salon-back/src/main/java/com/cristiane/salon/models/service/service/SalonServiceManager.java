@@ -20,8 +20,9 @@ public class SalonServiceManager {
     private final SalonServiceRepository salonServiceRepository;
 
     @Transactional(readOnly = true)
-    public List<SalonServiceResponse> findAll() {
+    public List<SalonServiceResponse> findAll(Boolean active) {
         return salonServiceRepository.findAll().stream()
+                .filter(service -> active == null || service.getActive().equals(active))
                 .map(SalonServiceResponse::fromEntity)
                 .collect(Collectors.toList());
     }

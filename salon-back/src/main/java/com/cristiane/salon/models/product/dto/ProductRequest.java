@@ -17,5 +17,7 @@ public record ProductRequest(
 
         @NotNull(message = "O preço é obrigatório")
         @Min(value = 0, message = "O preço não pode ser negativo")
-        BigDecimal price
+        BigDecimal price,
+
+        Boolean active
 ) {}

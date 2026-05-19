@@ -14,6 +14,7 @@ import { getApiErrorMessage } from '../../../utils/apiError';
 export const AdminServices = () => {
   const [services, setServices] = useState<SalonServiceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filterActive, setFilterActive] = useState<boolean | undefined>(undefined);
   
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<SalonServiceData | null>(null);
@@ -27,7 +28,7 @@ export const AdminServices = () => {
   const loadServices = async () => {
     setIsLoading(true);
     try {
-      const data = await salonServicesApi.findAll();
+      const data = await salonServicesApi.findAll(filterActive);
       setServices(data);
     } catch (err) {
       const msg = getApiErrorMessage(err, 'Erro ao carregar serviços');
@@ -39,7 +40,7 @@ export const AdminServices = () => {
 
   useEffect(() => {
     loadServices();
-  }, []);
+  }, [filterActive]);
 
   const handleOpenForm = (service?: SalonServiceData) => {
     reset();
@@ -147,12 +148,26 @@ export const AdminServices = () => {
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Gerenciar Serviços</h2>
-        <PermissionGate method="POST" endpoint="/v1/services">
-          <Button variant="primary" onClick={() => handleOpenForm()}>
-            <Plus size={18} className="me-2" />
-            Novo Serviço
-          </Button>
-        </PermissionGate>
+        <div className="d-flex gap-2">
+          <Form.Select 
+            value={filterActive === undefined ? 'ALL' : filterActive ? 'ACTIVE' : 'INACTIVE'}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFilterActive(val === 'ALL' ? undefined : val === 'ACTIVE');
+            }}
+            style={{ width: 'auto' }}
+          >
+            <option value="ALL">Todos os Registros</option>
+            <option value="ACTIVE">Apenas Ativos</option>
+            <option value="INACTIVE">Apenas Inativos</option>
+          </Form.Select>
+          <PermissionGate method="POST" endpoint="/v1/services">
+            <Button variant="primary" onClick={() => handleOpenForm()}>
+              <Plus size={18} className="me-2" />
+              Novo Serviço
+            </Button>
+          </PermissionGate>
+        </div>
       </div>
 
       {isLoading ? (

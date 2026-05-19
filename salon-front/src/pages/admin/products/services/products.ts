@@ -5,11 +5,13 @@ export interface ProductData {
   name: string;
   stock: number;
   price: number;
+  active?: boolean;
 }
 
 export const productsApi = {
-  findAll: async () => {
-    const { data } = await api.get<ProductData[]>('/products');
+  findAll: async (active?: boolean) => {
+    const params = active !== undefined ? { active } : {};
+    const { data } = await api.get<ProductData[]>('/products', { params });
     return data;
   },
 

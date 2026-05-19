@@ -21,8 +21,9 @@ export function displayServiceDuration(s: Pick<SalonServiceData, 'durationEstima
 }
 
 export const salonServicesApi = {
-  findAll: async () => {
-    const { data } = await api.get<SalonServiceData[]>('/services');
+  findAll: async (active?: boolean) => {
+    const params = active !== undefined ? { active } : {};
+    const { data } = await api.get<SalonServiceData[]>('/services', { params });
     return data;
   },
 

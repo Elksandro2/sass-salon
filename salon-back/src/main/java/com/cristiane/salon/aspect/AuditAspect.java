@@ -75,9 +75,8 @@ public class AuditAspect {
     
     private Long getUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof org.springframework.security.core.userdetails.User) {
-            // Você pode precisar de um atributo customizado para guardar o userId
-            return null;
+        if (auth != null && auth.getPrincipal() instanceof com.cristiane.salon.models.user.entity.User user) {
+            return user.getId();
         }
         return null;
     }

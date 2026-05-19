@@ -1,5 +1,6 @@
 package com.cristiane.salon.controller;
 
+import com.cristiane.salon.annotation.Auditable;
 import com.cristiane.salon.models.service.dto.SalonServiceRequest;
 import com.cristiane.salon.models.service.dto.SalonServiceResponse;
 import com.cristiane.salon.models.service.service.SalonServiceManager;
@@ -24,8 +25,8 @@ public class SalonServiceController {
 
     @GetMapping
     @Operation(summary = "Lista todos os serviços (Público)")
-    public ResponseEntity<List<SalonServiceResponse>> findAll() {
-        return ResponseEntity.ok(salonServiceManager.findAll());
+    public ResponseEntity<List<SalonServiceResponse>> findAll(@RequestParam(required = false) Boolean active) {
+        return ResponseEntity.ok(salonServiceManager.findAll(active));
     }
 
     @GetMapping("/{id}")
@@ -36,6 +37,7 @@ public class SalonServiceController {
 
     @PostMapping
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "CREATE", entityType = "SERVICE", captureArgs = true)
     @Operation(summary = "Cria um novo serviço (Admin)")
     public ResponseEntity<SalonServiceResponse> create(@Valid @RequestBody SalonServiceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(salonServiceManager.create(request));
@@ -43,6 +45,7 @@ public class SalonServiceController {
 
     @PutMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "UPDATE", entityType = "SERVICE", captureArgs = true)
     @Operation(summary = "Atualiza um serviço (Admin)")
     public ResponseEntity<SalonServiceResponse> update(@PathVariable Long id, @Valid @RequestBody SalonServiceRequest request) {
         return ResponseEntity.ok(salonServiceManager.update(id, request));
@@ -50,6 +53,7 @@ public class SalonServiceController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "DELETE", entityType = "SERVICE", captureArgs = true)
     @Operation(summary = "Exclui um serviço logicamente (Admin)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         salonServiceManager.delete(id);

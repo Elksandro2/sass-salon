@@ -1,5 +1,6 @@
 package com.cristiane.salon.controller;
 
+import com.cristiane.salon.annotation.Auditable;
 import com.cristiane.salon.models.user.dto.UserCreateRequest;
 import com.cristiane.salon.models.user.dto.UserResponse;
 import com.cristiane.salon.models.user.dto.UserUpdateRequest;
@@ -28,12 +29,15 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }
+
     @PostMapping
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "CREATE", entityType = "USER", captureArgs = true)
     @Operation(summary = "Cria um novo usuário (Admin)")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest request) {
         return ResponseEntity.ok(userService.create(request));
     }
+
     @GetMapping("/details/id/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(#id)")
     @Operation(summary = "Busca um usuário por ID (Dono ou Admin)")
@@ -43,6 +47,7 @@ public class UserController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(#id)")
+    @Auditable(action = "UPDATE", entityType = "USER", captureArgs = true)
     @Operation(summary = "Atualiza um usuário (Dono ou Admin)")
     public ResponseEntity<UserResponse> update(@PathVariable Long id, @Valid @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.update(id, request));
@@ -50,6 +55,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@verifyUserPermissions.userOwnResourceOrHasPermission(null)")
+    @Auditable(action = "DELETE", entityType = "USER", captureArgs = true)
     @Operation(summary = "Remove um usuário (Admin)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);

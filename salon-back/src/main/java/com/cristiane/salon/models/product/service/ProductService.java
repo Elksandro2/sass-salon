@@ -19,8 +19,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductResponse> findAll() {
+    public List<ProductResponse> findAll(Boolean active) {
         return productRepository.findAll().stream()
+                .filter(product -> active == null || product.getActive().equals(active))
                 .map(ProductResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -38,6 +39,7 @@ public class ProductService {
         product.setName(request.name());
         product.setStock(request.stock() != null ? request.stock() : 0);
         product.setPrice(request.price());
+        product.setActive(request.active() != null ? request.active() : true);
 
         return ProductResponse.fromEntity(productRepository.save(product));
     }
@@ -50,15 +52,16 @@ public class ProductService {
         if (request.name() != null) product.setName(request.name());
         if (request.stock() != null) product.setStock(request.stock());
         if (request.price() != null) product.setPrice(request.price());
+        if (request.active() != null) product.setActive(request.active());
 
         return ProductResponse.fromEntity(productRepository.save(product));
     }
 
     @Transactional
     public void delete(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Produto não encontrado");
-        }
-        productRepository.deleteById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
+        product.setActive(false);
+        productRepository.save(product);
     }
 }
