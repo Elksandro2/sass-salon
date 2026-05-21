@@ -30,8 +30,8 @@ public class AuditLogTableInitializer implements ApplicationRunner {
         jdbcTemplate.execute("""
                 CREATE TABLE tb_audit_log (
                     id BIGSERIAL PRIMARY KEY,
-                    user_id BIGINT NOT NULL,
-                    user_email VARCHAR(255) NOT NULL,
+                    user_id BIGINT,
+                    user_email VARCHAR(255),
                     action VARCHAR(100) NOT NULL,
                     entity_type VARCHAR(100) NOT NULL,
                     entity_id BIGINT,

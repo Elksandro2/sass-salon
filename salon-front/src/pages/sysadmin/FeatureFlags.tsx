@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Form, Spinner } from 'react-bootstrap';
 import { featureFlagsService, type FeatureFlag } from '../../services/featureFlags';
 import { getApiErrorMessage } from '../../utils/apiError';
 import { useAlert } from '../../hooks/useAlert';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, AlertCircle } from 'lucide-react';
 
 export const FeatureFlags = () => {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
@@ -33,7 +32,6 @@ export const FeatureFlags = () => {
     setTogglingName(name);
     try {
       await featureFlagsService.toggleFlag(name);
-      // Update local state
       setFlags(prev =>
         prev.map(flag =>
           flag.name === name ? { ...flag, enabled: !currentStatus } : flag
@@ -49,70 +47,79 @@ export const FeatureFlags = () => {
   };
 
   return (
-    <div className="container-fluid py-4">
-      <div className="d-flex align-items-center mb-4 pb-2 border-bottom">
-        <ShieldAlert size={32} className="text-primary me-2" />
-        <h2 className="mb-0">Gerenciar Feature Flags</h2>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <ShieldAlert size={32} className="text-[#be8a83]" />
+        <div>
+          <h2 className="font-heading text-2xl font-bold text-[#3b3036] tracking-wide">
+            Gerenciar Feature Flags
+          </h2>
+          <p className="text-sm text-[#3b3036]/60 mt-1">
+            Controle as funcionalidades do sistema em tempo real. Habilitar ou desabilitar flags afeta instantaneamente a experiência do usuário e os fluxos do backend.
+          </p>
+        </div>
       </div>
 
-      <p className="text-muted mb-4">
-        Controle as funcionalidades do sistema em tempo real. Habilitar ou desabilitar flags afeta instantaneamente a experiência do usuário e os fluxos do backend.
-      </p>
-
       {isLoading ? (
-        <div className="d-flex justify-content-center my-5">
-          <Spinner animation="border" variant="primary" />
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#be8a83]"></div>
+          <span className="text-sm text-[#3b3036]/60 font-medium font-sans">Buscando feature flags...</span>
         </div>
       ) : (
-        <Row className="g-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {flags.map(flag => (
-            <Col key={flag.name} xs={12} md={6} xl={4}>
-              <Card className="h-100 shadow-sm border-0" style={{ borderRadius: '12px' }}>
-                <Card.Body className="d-flex flex-column justify-content-between p-4">
-                  <div>
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <span className="fw-bold text-dark font-monospace" style={{ fontSize: '1.1rem' }}>
-                        {flag.name}
-                      </span>
-                      <span
-                        className={`badge px-3 py-2 rounded-pill ${
-                          flag.enabled ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'
-                        }`}
-                        style={{ fontSize: '0.8rem' }}
-                      >
-                        {flag.enabled ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </div>
-                    <Card.Text className="text-muted small mb-4" style={{ minHeight: '40px' }}>
-                      {flag.description || 'Nenhuma descrição fornecida.'}
-                    </Card.Text>
-                  </div>
+            <div 
+              key={flag.name} 
+              className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow duration-300"
+            >
+              <div>
+                <div className="flex justify-between items-start gap-4 mb-3">
+                  <span className="font-semibold text-[#3b3036] font-mono text-base break-all">
+                    {flag.name}
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                      flag.enabled 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                        : 'bg-gray-100 text-gray-600 border border-gray-200'
+                    }`}
+                  >
+                    {flag.enabled ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
+                <p className="text-sm text-[#3b3036]/70 min-h-[40px] mb-6">
+                  {flag.description || 'Nenhuma descrição fornecida.'}
+                </p>
+              </div>
 
-                  <div className="d-flex justify-content-between align-items-center pt-3 border-top">
-                    <span className="text-muted small">Alternar Status</span>
-                    {togglingName === flag.name ? (
-                      <Spinner animation="border" size="sm" variant="primary" />
-                    ) : (
-                      <Form.Check
-                        type="switch"
-                        id={`flag-switch-${flag.name}`}
-                        checked={flag.enabled}
-                        onChange={() => handleToggle(flag.name, flag.enabled)}
-                        style={{ cursor: 'pointer', scale: '1.2' }}
-                      />
-                    )}
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
+              <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                <span className="text-xs font-semibold text-[#3b3036]/60 uppercase tracking-wider">Alternar Status</span>
+                {togglingName === flag.name ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#be8a83]"></div>
+                ) : (
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={flag.enabled}
+                      onChange={() => handleToggle(flag.name, flag.enabled)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#be8a83]"></div>
+                  </label>
+                )}
+              </div>
+            </div>
           ))}
 
           {flags.length === 0 && (
-            <div className="text-center my-5">
-              <p className="text-muted">Nenhuma feature flag cadastrada no banco de dados.</p>
+            <div className="col-span-full flex flex-col items-center justify-center py-20 gap-2">
+              <AlertCircle size={40} className="text-gray-300" />
+              <span className="text-sm font-semibold text-[#3b3036]/80">Nenhuma feature flag cadastrada</span>
+              <span className="text-xs text-[#3b3036]/50">Entre em contato com o administrador do sistema.</span>
             </div>
           )}
-        </Row>
+        </div>
       )}
     </div>
   );

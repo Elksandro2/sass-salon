@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { profileApi } from './services/profile';
 import { useAuth } from '../../hooks/useAuth';
@@ -42,7 +41,6 @@ export const Profile = () => {
     
     setIsSaving(true);
     try {
-      // Only send password if it was filled
       const updateData = { ...data };
       if (!updateData.password) {
         delete updateData.password;
@@ -60,72 +58,101 @@ export const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3">Carregando perfil...</p>
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#be8a83]"></div>
+        <p className="text-sm text-[#3b3036]/60 font-medium">Carregando perfil...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h2 className="mb-4">Meu Perfil</h2>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <h2 className="font-heading text-2xl font-bold text-[#3b3036] tracking-wide">
+        Meu Perfil
+      </h2>
       
-      <Card className="shadow-sm border-0">
-        <Card.Body className="p-4">
-          <div className="d-flex align-items-center mb-4 pb-3 border-bottom">
-            <div className="bg-primary bg-opacity-10 rounded-circle p-3 me-3 text-primary">
-              <UserIcon size={32} />
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-xs space-y-6">
+        <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
+          <div className="bg-[#be8a83]/10 text-[#be8a83] rounded-full p-4 shrink-0">
+            <UserIcon size={32} />
+          </div>
+          <div>
+            <h4 className="font-semibold text-[#3b3036] text-lg">{user?.email}</h4>
+            <p className="text-sm text-[#3b3036]/60">Atualize suas informações pessoais</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                Nome Completo
+              </label>
+              <input 
+                type="text" 
+                {...register('name', { required: true })} 
+                className="w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all"
+              />
             </div>
-            <div>
-              <h4 className="mb-0">{user?.email}</h4>
-              <p className="text-muted mb-0">Atualize suas informações pessoais</p>
+            
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                Telefone
+              </label>
+              <input 
+                type="tel" 
+                {...register('phone')} 
+                placeholder="(11) 99999-9999" 
+                className="w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+              E-mail
+            </label>
+            <input 
+              type="email" 
+              {...register('email', { required: true })} 
+              disabled 
+              className="w-full text-sm px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed outline-none"
+            />
+            <p className="text-xs text-gray-400">
+              O email não pode ser alterado, pois é usado para login.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                Nova Senha
+              </label>
+              <input 
+                type="password" 
+                {...register('password')} 
+                placeholder="Deixe em branco para não alterar" 
+                className="w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all"
+              />
             </div>
           </div>
 
-          <Form onSubmit={handleSubmit(onSubmit)}>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Nome Completo</Form.Label>
-                  <Form.Control type="text" {...register('name', { required: true })} />
-                </Form.Group>
-              </Col>
-              
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Telefone</Form.Label>
-                  <Form.Control type="tel" {...register('phone')} placeholder="(11) 99999-9999" />
-                </Form.Group>
-              </Col>
-              
-              <Col md={12}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control type="email" {...register('email', { required: true })} disabled />
-                  <Form.Text className="text-muted">
-                    O email não pode ser alterado, pois é usado para login.
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-              
-              <Col md={6}>
-                <Form.Group className="mb-4">
-                  <Form.Label>Nova Senha</Form.Label>
-                  <Form.Control type="password" {...register('password')} placeholder="Deixe em branco para não alterar" />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <div className="d-flex justify-content-end">
-              <Button variant="primary" type="submit" disabled={isSaving}>
-                {isSaving ? <Spinner size="sm" className="me-2" /> : <Save size={18} className="me-2" />}
-                Salvar Alterações
-              </Button>
-            </div>
-          </Form>
-        </Card.Body>
-      </Card>
+          <div className="flex justify-end pt-4">
+            <button 
+              type="submit" 
+              disabled={isSaving}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isSaving ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+              ) : (
+                <Save size={18} />
+              )}
+              Salvar Alterações
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

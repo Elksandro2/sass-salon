@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Badge, Button, Row, Col } from 'react-bootstrap';
 import { appointmentsApi } from './services/appointments';
 import type { AppointmentResponse } from './services/appointments';
 import { ConfirmDialog } from '../../components/modal/ConfirmDialog';
-import './Appointments.css';
 import { useAlert } from '../../hooks/useAlert';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { CalendarX } from 'lucide-react';
 
 export const MyAppointments = () => {
   const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
@@ -38,8 +37,8 @@ export const MyAppointments = () => {
       data.sort((a, b) => sortKey(b) - sortKey(a));
       setAppointments(data);
     } catch (error) {
-        const msg = getApiErrorMessage(error, 'Erro ao carregar agendamentos');
-        await showError(msg);
+      const msg = getApiErrorMessage(error, 'Erro ao carregar agendamentos');
+      await showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -56,46 +55,57 @@ export const MyAppointments = () => {
       setShowConfirm(false);
       loadAppointments();
     } catch (error) {
-        const msg = getApiErrorMessage(error, 'Erro ao cancelar agendamento.');
-        await showError(msg);
+      const msg = getApiErrorMessage(error, 'Erro ao cancelar agendamento.');
+      await showError(msg);
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <Badge className="status-badge pending">Pendente</Badge>;
-      case 'REQUESTED':
-        return <Badge className="status-badge requested">Aguardando salão</Badge>;
-      case 'CONFIRMED':
-        return <Badge className="status-badge confirmed">Confirmado</Badge>;
-      case 'DECLINED':
-        return <Badge className="status-badge declined">Não atendido</Badge>;
-      case 'DONE':
-        return <Badge className="status-badge done">Concluído</Badge>;
-      case 'CANCELLED':
-        return <Badge className="status-badge cancelled">Cancelado</Badge>;
-      default:
-        return <Badge bg="secondary">{status}</Badge>;
-    }
+    const styles: Record<string, string> = {
+      PENDING: 'bg-amber-50 text-amber-700 border border-amber-200',
+      REQUESTED: 'bg-blue-50 text-blue-700 border border-blue-200',
+      CONFIRMED: 'bg-[#be8a83]/10 text-[#a6726b] border border-[#be8a83]/20',
+      DECLINED: 'bg-gray-100 text-gray-600 border border-gray-200',
+      DONE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      CANCELLED: 'bg-rose-50 text-rose-700 border border-rose-200',
+    };
+    const labels: Record<string, string> = {
+      PENDING: 'Pendente',
+      REQUESTED: 'Aguardando salão',
+      CONFIRMED: 'Confirmado',
+      DECLINED: 'Não atendido',
+      DONE: 'Concluído',
+      CANCELLED: 'Cancelado',
+    };
+    return (
+      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status] || 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+        {labels[status] || status}
+      </span>
+    );
+  };
+
+  const getCardBorderColor = (status: string) => {
+    const borders: Record<string, string> = {
+      PENDING: 'border-l-amber-400',
+      REQUESTED: 'border-l-blue-400',
+      CONFIRMED: 'border-l-[#be8a83]',
+      DECLINED: 'border-l-gray-400 opacity-80',
+      DONE: 'border-l-emerald-500 opacity-80',
+      CANCELLED: 'border-l-rose-400 opacity-60',
+    };
+    return borders[status] || 'border-l-gray-300';
   };
 
   const formatDate = (dateValue: string | number[] | null | undefined) => {
     let date: Date;
-    if (!dateValue) {
-      return { dayStr: '--', timeStr: '--', yearStr: '----' };
-    }
+    if (!dateValue) return { dayStr: '--', timeStr: '--', yearStr: '----' };
     if (Array.isArray(dateValue)) {
       const [year, month, day, hour, minute] = dateValue as number[];
       date = new Date(year, month - 1, day, hour, minute);
     } else {
       date = new Date(dateValue);
     }
-
-    if (isNaN(date.getTime())) {
-      return { dayStr: '--', timeStr: '--', yearStr: '----' };
-    }
-
+    if (isNaN(date.getTime())) return { dayStr: '--', timeStr: '--', yearStr: '----' };
     return {
       dayStr: new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(date),
       timeStr: new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date),
@@ -103,15 +113,15 @@ export const MyAppointments = () => {
     };
   };
 
-  const dateColumnFor = (apt: AppointmentResponse) => {
+  const DateColumn = ({ apt }: { apt: AppointmentResponse }) => {
     if (apt.scheduledAt) {
       const d = formatDate(apt.scheduledAt);
       return (
         <>
-          <span className="date-time">{d.timeStr}</span>
-          <div className="date-day">
-            <span className="day">{d.dayStr}</span>
-            <span className="year">{d.yearStr}</span>
+          <span className="font-heading text-xl font-bold text-[#3b3036]">{d.timeStr}</span>
+          <div className="flex flex-col items-center mt-0.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#be8a83]">{d.dayStr}</span>
+            <span className="text-xs text-gray-400">{d.yearStr}</span>
           </div>
         </>
       );
@@ -120,88 +130,88 @@ export const MyAppointments = () => {
       const d = new Date(apt.preferredDate + 'T12:00:00');
       return (
         <>
-          <span className="date-time" style={{ fontSize: '1rem' }}>Pref.</span>
-          <div className="date-day">
-            <span className="day">{d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
-            <span className="year">{d.getFullYear()}</span>
+          <span className="text-base font-bold text-[#3b3036]">Pref.</span>
+          <div className="flex flex-col items-center mt-0.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#be8a83]">
+              {d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+            </span>
+            <span className="text-xs text-gray-400">{d.getFullYear()}</span>
           </div>
         </>
       );
     }
     return (
       <>
-        <span className="date-time" style={{ fontSize: '1rem' }}>—</span>
-        <div className="date-day">
-          <span className="day">A combinar</span>
-          <span className="year">salão</span>
-        </div>
+        <span className="text-base font-bold text-gray-400">—</span>
+        <span className="text-xs text-gray-400 mt-0.5">A combinar</span>
       </>
     );
   };
 
   return (
-    <div className="appointments-section">
-      <div className="section-header">
-        <h2 className="section-title">Minha Agenda</h2>
-        <p className="section-subtitle">Acompanhe solicitações e horários confirmados</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="font-heading text-3xl font-bold text-[#3b3036]">Minha Agenda</h2>
+        <p className="text-sm text-[#3b3036]/60 mt-1">Acompanhe solicitações e horários confirmados</p>
       </div>
 
       {isLoading ? (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Buscando seus horários...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#be8a83]"></div>
+          <p className="text-sm text-[#3b3036]/60 font-medium">Buscando seus horários...</p>
         </div>
       ) : appointments.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📅</div>
-          <h3>Nenhum agendamento encontrado</h3>
-          <p>Você ainda não marcou nenhum serviço conosco.</p>
+        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 shadow-xs">
+          <CalendarX size={48} className="mx-auto text-gray-300 mb-3" />
+          <h3 className="font-semibold text-[#3b3036] text-lg">Nenhum agendamento encontrado</h3>
+          <p className="text-sm text-[#3b3036]/60 mt-1">Você ainda não marcou nenhum serviço conosco.</p>
         </div>
       ) : (
-        <Row className="g-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {appointments.map(apt => (
-            <Col lg={6} xl={4} key={apt.id}>
-              <div className={`appointment-card ${apt.status.toLowerCase()}`}>
-                <div className="appointment-date">
-                  {dateColumnFor(apt)}
-                </div>
-
-                <div className="appointment-content">
-                  <div className="d-flex justify-content-between align-items-start mb-3">
-                    <h4 className="service-name">{apt.serviceName}</h4>
-                    {getStatusBadge(apt.status)}
-                  </div>
-
-                  {apt.clientNotes ? (
-                    <p className="small text-muted mb-2" style={{ lineHeight: 1.4 }}>
-                      {apt.clientNotes}
-                    </p>
-                  ) : null}
-
-                  <div className="professional-info">
-                    <span className="prof-label">Profissional</span>
-                    <span className="prof-name">{apt.employeeName || 'Não especificado'}</span>
-                  </div>
-
-                  {apt.status !== 'CANCELLED' && apt.status !== 'DONE' && apt.status !== 'DECLINED' && (
-                    <div className="appointment-actions">
-                      <Button
-                        variant="none"
-                        className="btn-cancel-custom"
-                        onClick={() => {
-                          setAppointmentToCancel(apt.id);
-                          setShowConfirm(true);
-                        }}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  )}
-                </div>
+            <div 
+              key={apt.id} 
+              className={`bg-white rounded-2xl border border-gray-100 border-l-4 ${getCardBorderColor(apt.status)} flex overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
+            >
+              {/* Date Column */}
+              <div className="bg-gray-50/70 px-4 py-5 flex flex-col justify-center items-center min-w-[110px] border-r border-dashed border-gray-100 text-center space-y-1">
+                <DateColumn apt={apt} />
               </div>
-            </Col>
+
+              {/* Content */}
+              <div className="flex-1 p-4 flex flex-col">
+                <div className="flex justify-between items-start gap-2 mb-2">
+                  <h4 className="font-bold text-[#3b3036] text-sm leading-tight">{apt.serviceName}</h4>
+                  {getStatusBadge(apt.status)}
+                </div>
+
+                {apt.clientNotes && (
+                  <p className="text-xs text-[#3b3036]/60 mb-2 leading-relaxed">{apt.clientNotes}</p>
+                )}
+
+                <div className="mt-auto space-y-0.5">
+                  <span className="block text-xs font-bold uppercase tracking-widest text-gray-400">Profissional</span>
+                  <span className="text-sm font-semibold text-[#3b3036]">{apt.employeeName || 'Não especificado'}</span>
+                </div>
+
+                {apt.status !== 'CANCELLED' && apt.status !== 'DONE' && apt.status !== 'DECLINED' && (
+                  <div className="mt-3 pt-3 border-t border-dashed border-gray-100">
+                    <button
+                      onClick={() => {
+                        setAppointmentToCancel(apt.id);
+                        setShowConfirm(true);
+                      }}
+                      className="w-full py-2 text-rose-600 border border-dashed border-rose-200 bg-transparent hover:bg-rose-50 hover:border-rose-400 rounded-xl text-xs font-semibold transition-all"
+                    >
+                      Cancelar Agendamento
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
-        </Row>
+        </div>
       )}
 
       <ConfirmDialog

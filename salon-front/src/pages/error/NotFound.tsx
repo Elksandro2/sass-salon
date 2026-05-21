@@ -1,20 +1,22 @@
-import { Button, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 export const NotFound = () => {
   const navigate = useNavigate();
 
   return (
-    <Container className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <h1 className="display-1 fw-bold text-primary">404</h1>
-      <h2 className="mb-4">Página não encontrada</h2>
-      <p className="text-muted text-center mb-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcf9f9] px-4 py-8">
+      <h1 className="text-8xl font-extrabold text-[#be8a83] tracking-tighter">404</h1>
+      <h2 className="text-2xl font-bold text-[#3b3036] mt-4 mb-2">Página não encontrada</h2>
+      <p className="text-[#3b3036]/60 text-center mb-8 max-w-md text-sm leading-relaxed">
         A página que você está procurando pode ter sido removida, <br />
         renomeada ou está temporariamente indisponível.
       </p>
-      <Button variant="primary" onClick={() => navigate('/')}>
+      <button 
+        onClick={() => navigate('/')}
+        className="px-6 py-2.5 bg-[#be8a83] text-white hover:bg-[#a6726b] hover:shadow-lg hover:shadow-[#be8a83]/20 font-semibold text-sm rounded-full transition-all active:scale-[0.98]"
+      >
         Voltar para o Início
-      </Button>
-    </Container>
+      </button>
+    </div>
   );
 };

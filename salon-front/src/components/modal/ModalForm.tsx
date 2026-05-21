@@ -1,6 +1,5 @@
-import { Modal, Button, Form } from 'react-bootstrap';
 import type { ReactNode } from 'react';
-import './Modal.css';
+import { X } from 'lucide-react';
 
 interface ModalFormProps {
   show: boolean;
@@ -23,24 +22,58 @@ export const ModalForm = ({
   submitLabel = 'Salvar',
   cancelLabel = 'Cancelar'
 }: ModalFormProps) => {
+  if (!show) return null;
+
   return (
-    <Modal show={show} onHide={onHide} centered backdrop="static">
-      <Form onSubmit={onSubmit}>
-        <Modal.Header closeButton>
-          <Modal.Title>{title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {children}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide} disabled={isSubmitting}>
-            {cancelLabel}
-          </Button>
-          <Button variant="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Salvando...' : submitLabel}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-[#261f23]/60 backdrop-blur-sm transition-opacity" 
+        onClick={onHide}
+      />
+      
+      {/* Modal Dialog */}
+      <div className="relative w-full max-w-lg mx-auto my-6 z-50 px-4">
+        <div className="relative flex flex-col w-full bg-white border border-[#eae1e1] rounded-2xl shadow-xl outline-none focus:outline-none">
+          {/* Header */}
+          <div className="flex items-center justify-between p-5 border-b border-solid border-[#eae1e1] rounded-t-2xl">
+            <h3 className="text-lg font-semibold font-heading text-[#3b3036]">{title}</h3>
+            <button
+              onClick={onHide}
+              className="p-1 ml-auto bg-transparent border-0 text-[#7a7074] hover:text-[#be8a83] float-right text-3xl leading-none font-semibold outline-none focus:outline-none transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          
+          {/* Form wrapper */}
+          <form onSubmit={onSubmit}>
+            {/* Body */}
+            <div className="relative p-6 flex-auto max-h-[70vh] overflow-y-auto">
+              {children}
+            </div>
+            
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-solid border-[#eae1e1] rounded-b-2xl bg-[#fcf9f9]">
+              <button
+                type="button"
+                onClick={onHide}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-[#eae1e1] rounded-lg text-sm font-medium text-[#3b3036] hover:bg-[#fcf9f9] transition-colors disabled:opacity-50"
+              >
+                {cancelLabel}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-[#be8a83] hover:bg-[#a1706a] text-white rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+              >
+                {isSubmitting ? 'Salvando...' : submitLabel}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };

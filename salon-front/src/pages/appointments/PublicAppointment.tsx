@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Form, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { Clock, User as UserIcon, Calendar, CheckCircle, ArrowLeft, ArrowRight, MessageSquare, CalendarHeart } from 'lucide-react';
+import { Clock, User as UserIcon, Calendar, CheckCircle, ArrowLeft, ArrowRight, MessageSquare, CalendarHeart, AlertCircle } from 'lucide-react';
 import { salonServicesApi, displayServiceDuration } from '../services/services/services';
 import type { SalonServiceData } from '../services/services/services';
 import { employeesApi } from '../admin/employees/services/employees';
 import type { EmployeeData } from '../admin/employees/services/employees';
 import { appointmentsApi } from './services/appointments';
 import { useAuth } from '../../hooks/useAuth';
-import './PublicAppointment.css';
 import { getApiErrorMessage } from '../../utils/apiError';
 import { featureFlagsService } from '../../services/featureFlags';
 
@@ -47,21 +45,14 @@ export const PublicAppointment = () => {
     const raw = localStorage.getItem('pending_appointment');
     if (raw) {
       try {
-        const p = JSON.parse(raw) as {
-          serviceId?: number;
-          employeeId?: number;
-          preferredDate?: string;
-          clientNotes?: string;
-        };
+        const p = JSON.parse(raw) as { serviceId?: number; employeeId?: number; preferredDate?: string; clientNotes?: string; };
         if (p.serviceId) setSelectedService(p.serviceId);
         if (p.employeeId) setSelectedEmployee(p.employeeId);
         if (p.preferredDate) setPreferredDate(p.preferredDate);
         if (p.clientNotes) setClientNotes(p.clientNotes);
         if (p.serviceId && p.employeeId) setStep(4);
         else if (p.serviceId) setStep(2);
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     }
   }, []);
 
@@ -76,11 +67,9 @@ export const PublicAppointment = () => {
         setServices(servicesData.filter(s => s.active));
         setEmployees(employeesData);
         const bookingFlag = flagsData.find(f => f.name === 'CLIENT_BOOKING');
-        if (bookingFlag && !bookingFlag.enabled) {
-          setIsBookingEnabled(false);
-        }
+        if (bookingFlag && !bookingFlag.enabled) setIsBookingEnabled(false);
       } catch (error) {
-        const msg = getApiErrorMessage(error, 'Não foi possível carregar serviços ou profissionais. Tente novamente em instantes.');
+        const msg = getApiErrorMessage(error, 'Não foi possível carregar serviços ou profissionais.');
         setErrorMsg(msg);
       } finally {
         setIsInitialLoading(false);
@@ -103,10 +92,7 @@ export const PublicAppointment = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleBack = () => {
-    setStep(step - 1);
-    window.scrollTo(0, 0);
-  };
+  const handleBack = () => { setStep(step - 1); window.scrollTo(0, 0); };
 
   const handleSubmit = async () => {
     if (!isAuthenticated) {
@@ -119,7 +105,6 @@ export const PublicAppointment = () => {
       navigate('/login');
       return;
     }
-
     setIsLoading(true);
     setErrorMsg('');
     try {
@@ -141,22 +126,25 @@ export const PublicAppointment = () => {
 
   if (isInitialLoading) {
     return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <Spinner animation="border" variant="primary" />
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#be8a83]"></div>
       </div>
     );
   }
 
   if (!isBookingEnabled) {
     return (
-      <div className="appointment-container text-center fade-in-up py-5">
-        <div className="p-5 bg-white shadow-sm border" style={{ borderRadius: '16px', maxWidth: '600px', margin: '40px auto' }}>
-          <CalendarHeart size={64} className="text-muted mb-4" />
-          <h3 className="mb-3 text-secondary">Agendamentos Online Desativados</h3>
-          <p className="text-muted mb-4" style={{ lineHeight: '1.6' }}>
-            Os agendamentos online para clientes estão temporariamente desativados no momento. Por favor, entre em contato direto com o salão para agendar seu horário.
+      <div className="max-w-lg mx-auto text-center py-16 px-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-xs p-10">
+          <CalendarHeart size={56} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="font-heading text-xl font-bold text-[#3b3036] mb-2">Agendamentos Online Desativados</h3>
+          <p className="text-sm text-[#3b3036]/60 mb-6 leading-relaxed">
+            Os agendamentos online para clientes estão temporariamente desativados. Por favor, entre em contato direto com o salão para agendar seu horário.
           </p>
-          <button className="btn btn-primary btn-lg" onClick={() => navigate('/')}>
+          <button
+            className="px-6 py-2.5 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-full transition-all"
+            onClick={() => navigate('/')}
+          >
             Voltar para o início
           </button>
         </div>
@@ -175,47 +163,77 @@ export const PublicAppointment = () => {
   const priceLabel = priceTagLabel(selectedSrv?.price);
 
   return (
-    <div className="appointment-container fade-in-up">
-      <div className="appointment-header">
-        <h2>Solicitar horário</h2>
-        <p className="text-muted">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 animate-fadeIn">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="font-heading text-3xl font-bold text-[#3b3036] tracking-tight">Solicitar horário</h2>
+        <p className="text-sm text-[#3b3036]/60 mt-1">
           Monte seu pedido abaixo. O salão confirma data e horário e avisa você por aqui.
         </p>
       </div>
 
-      <div className="stepper">
+      {/* Stepper */}
+      <div className="relative flex justify-between">
+        <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0" />
         {steps.map((s) => (
-          <div key={s.n} className={`step-item ${step === s.n ? 'active' : ''} ${step > s.n ? 'completed' : ''}`}>
-            <div className="step-number">
-              {step > s.n ? <CheckCircle size={20} /> : s.n}
+          <div key={s.n} className="relative z-10 flex flex-col items-center flex-1">
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-300 ${
+              step > s.n
+                ? 'bg-[#3b3036] border-[#3b3036] text-white'
+                : step === s.n
+                  ? 'bg-[#be8a83] border-[#be8a83] text-white shadow-lg shadow-[#be8a83]/20'
+                  : 'bg-white border-gray-200 text-gray-400'
+            }`}>
+              {step > s.n ? <CheckCircle size={18} /> : s.n}
             </div>
-            <div className="step-label">{s.label}</div>
+            <div className={`text-xs font-semibold mt-1.5 transition-colors ${step === s.n ? 'text-[#be8a83]' : step > s.n ? 'text-[#3b3036]' : 'text-gray-400'}`}>
+              {s.label}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="appointment-content">
-        {errorMsg && <Alert variant="danger" className="mb-4">{errorMsg}</Alert>}
+      {/* Content */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-xs">
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm flex items-start gap-2.5">
+            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
 
+        {/* Step 1: Service */}
         {step === 1 && (
-          <div>
-            <h4 className="mb-4 text-center">O que vamos fazer?</h4>
-            <div className="selection-grid">
+          <div className="space-y-4">
+            <h4 className="font-heading text-lg font-bold text-center text-[#3b3036]">O que vamos fazer?</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {services.map(srv => {
                 const tag = priceTagLabel(srv.price);
                 return (
                   <div
                     key={srv.id}
-                    className={`option-card ${selectedService === srv.id ? 'selected' : ''}`}
                     onClick={() => setSelectedService(srv.id!)}
+                    className={`relative cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 ${
+                      selectedService === srv.id
+                        ? 'border-[#be8a83] bg-[#be8a83]/5 shadow-md shadow-[#be8a83]/10'
+                        : 'border-gray-100 bg-white hover:border-[#be8a83]/50 hover:-translate-y-0.5 hover:shadow-sm'
+                    }`}
                   >
-                    {tag ? <span className="price-tag">{tag}</span> : null}
-                    <h5 className="mb-1">{srv.name}</h5>
-                    <p className="text-muted small mb-2">{srv.description || 'Tratamento especializado para você.'}</p>
-                    <div className="duration">
-                      <Clock size={14} />
-                      {displayServiceDuration(srv)}
+                    {tag && (
+                      <span className="inline-flex mb-2 px-2.5 py-1 bg-[#be8a83] text-white text-xs font-bold rounded-full">
+                        {tag}
+                      </span>
+                    )}
+                    <h5 className="font-bold text-[#3b3036] mb-1">{srv.name}</h5>
+                    <p className="text-xs text-[#3b3036]/60 mb-3 leading-relaxed">
+                      {srv.description || 'Tratamento especializado para você.'}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                      <Clock size={14} /> {displayServiceDuration(srv)}
                     </div>
+                    {selectedService === srv.id && (
+                      <CheckCircle size={20} className="absolute top-3 right-3 text-[#be8a83]" />
+                    )}
                   </div>
                 );
               })}
@@ -223,145 +241,132 @@ export const PublicAppointment = () => {
           </div>
         )}
 
+        {/* Step 2: Employee */}
         {step === 2 && (
-          <div>
-            <h4 className="mb-4 text-center">Com quem você prefere?</h4>
-            <div className="selection-grid">
+          <div className="space-y-4">
+            <h4 className="font-heading text-lg font-bold text-center text-[#3b3036]">Com quem você prefere?</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {employees.map(emp => (
                 <div
                   key={emp.id}
-                  className={`option-card ${selectedEmployee === emp.id ? 'selected' : ''}`}
                   onClick={() => setSelectedEmployee(emp.id!)}
+                  className={`relative cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 flex items-center gap-4 ${
+                    selectedEmployee === emp.id
+                      ? 'border-[#be8a83] bg-[#be8a83]/5 shadow-md shadow-[#be8a83]/10'
+                      : 'border-gray-100 bg-white hover:border-[#be8a83]/50 hover:-translate-y-0.5 hover:shadow-sm'
+                  }`}
                 >
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="avatar-placeholder">
-                      {(emp.name ?? 'P').charAt(0)}
-                    </div>
-                    <div>
-                      <h5 className="mb-0">{emp.name}</h5>
-                      <p className="text-muted small mb-0">{emp.bio || 'Profissional especialista'}</p>
-                    </div>
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#be8a83] to-[#3b3036] text-white flex items-center justify-center font-bold text-xl shrink-0">
+                    {(emp.name ?? 'P').charAt(0)}
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-bold text-[#3b3036] mb-0.5">{emp.name}</h5>
+                    <p className="text-xs text-[#3b3036]/60 leading-snug">{emp.bio || 'Profissional especialista'}</p>
+                  </div>
+                  {selectedEmployee === emp.id && (
+                    <CheckCircle size={20} className="shrink-0 text-[#be8a83]" />
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* Step 3: Preferences */}
         {step === 3 && (
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h4 className="mb-4 text-center">Preferência de dia e observações</h4>
-            <p className="text-muted small text-center mb-4">
-              O horário exato será combinado pela equipe. Indique um dia de preferência, se quiser.
-            </p>
-            <Form.Group className="mb-4">
-              <Form.Label className="fw-bold d-flex align-items-center gap-2">
-                <Calendar size={18} /> Dia de preferência (opcional)
-              </Form.Label>
-              <Form.Control
+          <div className="max-w-lg mx-auto space-y-6">
+            <div className="text-center">
+              <h4 className="font-heading text-lg font-bold text-[#3b3036]">Preferência de dia e observações</h4>
+              <p className="text-xs text-[#3b3036]/60 mt-1">
+                O horário exato será combinado pela equipe. Indique um dia de preferência, se quiser.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                <Calendar size={16} /> Dia de preferência (opcional)
+              </label>
+              <input
                 type="date"
-                className="custom-input"
                 min={localTodayIso()}
                 value={preferredDate}
                 onChange={(e) => setPreferredDate(e.target.value)}
+                className="w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all"
               />
-            </Form.Group>
-            <Form.Group className="mb-2">
-              <Form.Label className="fw-bold d-flex align-items-center gap-2">
-                <MessageSquare size={18} /> Observações (opcional)
-              </Form.Label>
-              <Form.Control
-                as="textarea"
+            </div>
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                <MessageSquare size={16} /> Observações (opcional)
+              </label>
+              <textarea
                 rows={4}
-                className="custom-input"
                 placeholder="Ex.: só de manhã, comentários sobre o cabelo, etc."
                 value={clientNotes}
                 onChange={(e) => setClientNotes(e.target.value)}
+                className="w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all resize-none"
               />
-            </Form.Group>
+            </div>
           </div>
         )}
 
+        {/* Step 4: Summary */}
         {step === 4 && (
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h4 className="mb-4 text-center">Revisar pedido</h4>
-            <div className="summary-card">
-              <div className="summary-header">
-                <CheckCircle size={40} className="mb-2" />
-                <h5>Resumo da solicitação</h5>
+          <div className="max-w-lg mx-auto space-y-4">
+            <h4 className="font-heading text-lg font-bold text-center text-[#3b3036]">Revisar pedido</h4>
+            <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-xs">
+              <div className="bg-gradient-to-r from-[#3b3036] to-[#261f23] text-white px-6 py-5 text-center">
+                <CheckCircle size={40} className="mx-auto mb-2 text-[#e5a49c]" />
+                <h5 className="font-bold text-lg text-white">Resumo da solicitação</h5>
               </div>
-              <div className="summary-body">
-                <div className="summary-row">
-                  <span className="summary-label">Serviço</span>
-                  <span className="summary-value">{selectedSrv?.name}</span>
-                </div>
-                <div className="summary-row">
-                  <span className="summary-label">Profissional</span>
-                  <span className="summary-value">{employees.find(e => e.id === selectedEmployee)?.name}</span>
-                </div>
-                {preferredDate ? (
-                  <div className="summary-row">
-                    <span className="summary-label">Dia preferido</span>
-                    <span className="summary-value">
-                      {new Date(preferredDate + 'T12:00:00').toLocaleDateString('pt-BR')}
-                    </span>
+              <div className="divide-y divide-gray-50 px-6">
+                {[
+                  { label: 'Serviço', value: selectedSrv?.name },
+                  { label: 'Profissional', value: employees.find(e => e.id === selectedEmployee)?.name },
+                  ...(preferredDate ? [{ label: 'Dia preferido', value: new Date(preferredDate + 'T12:00:00').toLocaleDateString('pt-BR') }] : []),
+                  ...(clientNotes.trim() ? [{ label: 'Observações', value: clientNotes.trim() }] : []),
+                  { label: 'Referência de valor', value: priceLabel || 'Definido no atendimento' },
+                ].map((row, i) => (
+                  <div key={i} className="py-3.5 flex flex-col gap-0.5">
+                    <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{row.label}</span>
+                    <span className="text-sm font-semibold text-[#3b3036] whitespace-pre-wrap break-words">{row.value}</span>
                   </div>
-                ) : null}
-                {clientNotes.trim() ? (
-                  <div className="summary-row summary-row--notes">
-                    <span className="summary-label">Observações</span>
-                    <p className="summary-notes">{clientNotes.trim()}</p>
-                  </div>
-                ) : null}
-                {priceLabel ? (
-                  <div className="summary-row summary-row--divider">
-                    <span className="summary-label fw-bold text-dark">Referência</span>
-                    <span className="summary-value text-primary fs-6">{priceLabel}</span>
-                  </div>
-                ) : (
-                  <div className="summary-row summary-row--divider">
-                    <span className="summary-label text-muted">Valor</span>
-                    <span className="summary-value text-muted fs-6">Definido no atendimento / caixa</span>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
 
             {!isAuthenticated && (
-              <Alert variant="warning" className="mt-4">
-                Você precisará entrar na sua conta para enviar a solicitação.
-              </Alert>
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm flex items-start gap-2.5">
+                <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                <span>Você precisará entrar na sua conta para enviar a solicitação.</span>
+              </div>
             )}
           </div>
         )}
 
-        <div className="nav-footer">
+        {/* Navigation */}
+        <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
           <button
-            className="btn-nav btn-outline-custom d-flex align-items-center gap-2"
             onClick={handleBack}
             disabled={step === 1 || isLoading}
+            className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-sm font-semibold text-[#3b3036] hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none rounded-xl transition-all"
           >
-            <ArrowLeft size={18} />
-            Voltar
+            <ArrowLeft size={18} /> Voltar
           </button>
 
           {step < 4 ? (
             <button
-              className="btn-nav btn-primary-custom d-flex align-items-center gap-2"
               onClick={handleNext}
               disabled={(step === 1 && !selectedService) || (step === 2 && !selectedEmployee)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#be8a83] text-white hover:bg-[#a6726b] hover:shadow-lg hover:shadow-[#be8a83]/20 font-semibold text-sm rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none"
             >
-              Próximo
-              <ArrowRight size={18} />
+              Próximo <ArrowRight size={18} />
             </button>
           ) : (
             <button
-              className="btn-nav btn-primary-custom d-flex align-items-center gap-2"
               onClick={handleSubmit}
               disabled={isLoading}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#be8a83] text-white hover:bg-[#a6726b] hover:shadow-lg hover:shadow-[#be8a83]/20 font-semibold text-sm rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none"
             >
-              {isLoading ? 'Enviando...' : 'Enviar solicitação'}
-              <CheckCircle size={18} />
+              {isLoading ? 'Enviando...' : 'Enviar solicitação'} <CheckCircle size={18} />
             </button>
           )}
         </div>

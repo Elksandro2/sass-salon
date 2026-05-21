@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react';
-import { Table as BSTable, Pagination, Form, InputGroup } from 'react-bootstrap';
 import { Search } from 'lucide-react';
-import './Table.css';
 
 interface Column<T> {
   key: keyof T | string;
@@ -33,70 +31,103 @@ export function Table<T>({
   emptyMessage = 'Nenhum registro encontrado.'
 }: TableProps<T>) {
   return (
-    <div className="table-container">
+    <div className="w-full bg-white rounded-2xl p-6 shadow-sm border border-[#eae1e1] mb-8">
       {onSearchChange && (
-        <div className="mb-3 d-flex justify-content-end">
-          <InputGroup style={{ maxWidth: '300px' }}>
-            <InputGroup.Text><Search size={18} /></InputGroup.Text>
-            <Form.Control
+        <div className="mb-4 flex justify-end">
+          <div className="relative w-full max-w-xs">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#7a7074]">
+              <Search size={18} />
+            </span>
+            <input
+              type="text"
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-[#eae1e1] rounded-lg bg-white text-[#2a2528] placeholder-[#7a7074]/60 focus:outline-none focus:ring-2 focus:ring-[#be8a83] focus:border-transparent transition-all"
             />
-          </InputGroup>
+          </div>
         </div>
       )}
 
-      <BSTable responsive className="custom-table" borderless>
-        <thead>
-          <tr>
-            {columns.map((col, index) => (
-              <th key={String(col.key) + index}>{col.label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className="text-center py-4 text-muted">
-                {emptyMessage}
-              </td>
+      <div className="w-full overflow-x-auto">
+        <table className="w-full text-left border-separate border-spacing-y-2">
+          <thead>
+            <tr className="text-[#7a7074] font-semibold text-xs uppercase tracking-wider">
+              {columns.map((col, index) => (
+                <th key={String(col.key) + index} className="px-4 py-3">
+                  {col.label}
+                </th>
+              ))}
             </tr>
-          ) : (
-            data.map((item) => (
-              <tr key={keyExtractor(item)}>
-                {columns.map((col, index) => (
-                  <td key={String(col.key) + index} className="align-middle">
-                    {col.render ? col.render(item) : String(item[col.key as keyof T] || '')}
-                  </td>
-                ))}
+          </thead>
+          <tbody className="text-sm text-[#2a2528]">
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-[#7a7074]/80 bg-white border border-[#eae1e1] rounded-xl">
+                  {emptyMessage}
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </BSTable>
+            ) : (
+              data.map((item) => (
+                <tr key={keyExtractor(item)} className="group">
+                  {columns.map((col, index) => {
+                    const isFirst = index === 0;
+                    const isLast = index === columns.length - 1;
+                    return (
+                      <td
+                        key={String(col.key) + index}
+                        className={`px-4 py-4 align-middle bg-white border-y border-[#eae1e1] group-hover:bg-[#fcf9f9] transition-colors ${
+                          isFirst ? 'border-l rounded-l-xl' : ''
+                        } ${isLast ? 'border-r rounded-r-xl' : ''}`}
+                      >
+                        {col.render ? col.render(item) : String(item[col.key as keyof T] || '')}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {totalPages > 1 && onPageChange && (
-        <div className="d-flex justify-content-center mt-4">
-          <Pagination>
-            <Pagination.Prev 
-              disabled={currentPage === 1} 
-              onClick={() => onPageChange(currentPage - 1)} 
-            />
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <Pagination.Item 
-                key={i + 1} 
-                active={i + 1 === currentPage}
-                onClick={() => onPageChange(i + 1)}
-              >
-                {i + 1}
-              </Pagination.Item>
-            ))}
-            <Pagination.Next 
-              disabled={currentPage === totalPages} 
-              onClick={() => onPageChange(currentPage + 1)} 
-            />
-          </Pagination>
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="px-4 py-2 border border-[#eae1e1] rounded-lg bg-white text-[#3b3036] hover:text-[#be8a83] hover:border-[#be8a83] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+          >
+            Anterior
+          </button>
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }).map((_, i) => {
+              const pageNum = i + 1;
+              const isActive = pageNum === currentPage;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => onPageChange(pageNum)}
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'bg-[#be8a83] text-white shadow-sm'
+                      : 'border border-[#eae1e1] bg-white text-[#3b3036] hover:text-[#be8a83] hover:border-[#be8a83]'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="px-4 py-2 border border-[#eae1e1] rounded-lg bg-white text-[#3b3036] hover:text-[#be8a83] hover:border-[#be8a83] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+          >
+            Próxima
+          </button>
         </div>
       )}
     </div>

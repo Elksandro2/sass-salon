@@ -24,10 +24,10 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private Long userId;
     
-    @Column(name = "user_email", nullable = false)
+    @Column(name = "user_email")
     private String userEmail;
     
     @Column(name = "action", nullable = false, length = 100)

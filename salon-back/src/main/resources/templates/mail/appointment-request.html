@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Pedido de Agendamento</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eaeaea;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e1e2f 0%, #3f3f5f 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .intro-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: #555555;
+        }
+        .details-card {
+            background-color: #fdfdfd;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .details-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+            color: #666666;
+            font-size: 14px;
+            width: 35%;
+        }
+        .value {
+            color: #111111;
+            font-size: 14px;
+            width: 65%;
+            text-align: right;
+            font-weight: 500;
+        }
+        .notes-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3f3f5f;
+            padding: 16px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-style: italic;
+            color: #555555;
+            font-size: 14px;
+        }
+        .cta-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3f3f5f;
+            color: #ffffff !important;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(63, 63, 95, 0.2);
+            transition: all 0.2s ease;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #888888;
+            border-top: 1px solid #eaeaea;
+        }
+        .footer p {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Novo Pedido de Agendamento</h1>
+        </div>
+        <div class="content">
+            <p class="intro-text">
+                Olá equipe, um novo agendamento foi solicitado pelo cliente através da plataforma. Por favor, revise os detalhes abaixo e acesse o painel para confirmar ou sugerir um novo horário.
+            </p>
+            <div class="details-card">
+                <div class="details-row">
+                    <span class="label">Cliente</span>
+                    <span class="value" th:text="${appointment.client.name}">Ana Silva</span>
+                </div>
+                <div class="details-row">
+                    <span class="label">E-mail</span>
+                    <span class="value" th:text="${appointment.client.email}">ana.silva@example.com</span>
+                </div>
+                <div class="details-row">
+                    <span class="label">Serviço</span>
+                    <span class="value" th:text="${appointment.salonService.name}">Corte Feminino</span>
+                </div>
+                <div class="details-row">
+                    <span class="label">Profissional</span>
+                    <span class="value" th:text="${appointment.employee.user.name}">Cristiane Moura</span>
+                </div>
+                <div class="details-row">
+                    <span class="label">Data Preferida</span>
+                    <span class="value" th:text="${appointment.preferredDate != null ? #temporals.format(appointment.preferredDate, 'dd/MM/yyyy') : 'Não informada'}">25/05/2026</span>
+                </div>
+                <div th:if="${appointment.clientNotes != null and !appointment.clientNotes.isEmpty()}">
+                    <div style="font-weight: 600; color: #666666; font-size: 14px; margin-top: 16px;">Observações do Cliente:</div>
+                    <div class="notes-box" th:text="${appointment.clientNotes}">Gostaria de lavar o cabelo antes.</div>
+                </div>
+            </div>
+            <div class="cta-container">
+                <a href="http://localhost:5173/admin/appointments" class="btn">Visualizar no Painel</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Este é um e-mail automático gerado pelo sistema <strong>Sass Salon</strong>.</p>
+            <p>&copy; 2026 Cristiane Moura Beauty Salon. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

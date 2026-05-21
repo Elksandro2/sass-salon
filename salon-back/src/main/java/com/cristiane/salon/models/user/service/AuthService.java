@@ -3,6 +3,7 @@ package com.cristiane.salon.models.user.service;
 import com.cristiane.salon.exception.BadRequestException;
 import com.cristiane.salon.exception.ResourceNotFoundException;
 import com.cristiane.salon.exception.UnauthorizedException;
+import com.cristiane.salon.models.audit.AuditLogService;
 import com.cristiane.salon.models.user.dto.LoginRequest;
 import com.cristiane.salon.models.user.dto.RegisterRequest;
 import com.cristiane.salon.models.user.dto.TokenResponse;
@@ -27,48 +28,106 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final AuditLogService auditLogService;
 
     @Transactional
     public TokenResponse register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new BadRequestException("Email já cadastrado");
+        try {
+            if (userRepository.findByEmail(request.email()).isPresent()) {
+                throw new BadRequestException("Email já cadastrado");
+            }
+
+            Role clienteRole = roleRepository.findByName("CLIENTE")
+                    .orElseThrow(() -> new ResourceNotFoundException("Role CLIENTE não encontrada"));
+
+            User user = new User();
+            user.setName(request.name());
+            user.setEmail(request.email());
+            user.setPassword(passwordEncoder.encode(request.password()));
+            user.setPhone(request.phone());
+            user.setRole(clienteRole);
+            user.setActive(true);
+
+            userRepository.save(user);
+
+            String jwtToken = jwtService.generateAccessToken(user);
+            String refreshToken = jwtService.generateRefreshToken(user);
+
+            // Registo de auditoria de sucesso
+            auditLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    "REGISTER",
+                    "User",
+                    user.getId(),
+                    "Cadastro efetuado com sucesso para: " + user.getEmail(),
+                    "SUCCESS"
+            );
+
+            return new TokenResponse(jwtToken, refreshToken);
+        } catch (Exception e) {
+            // Registo de auditoria de falha
+            auditLogService.logAction(
+                    null,
+                    request.email(),
+                    "REGISTER",
+                    "User",
+                    null,
+                    "Falha ao realizar cadastro para o e-mail: " + request.email(),
+                    "FAILURE",
+                    e.getMessage()
+            );
+            throw e;
         }
-
-        Role clienteRole = roleRepository.findByName("CLIENTE")
-                .orElseThrow(() -> new ResourceNotFoundException("Role CLIENTE não encontrada"));
-
-        User user = new User();
-        user.setName(request.name());
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setPhone(request.phone());
-        user.setRole(clienteRole);
-        user.setActive(true);
-
-        userRepository.save(user);
-
-        String jwtToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-
-        return new TokenResponse(jwtToken, refreshToken);
     }
 
     public TokenResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
+            );
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UnauthorizedException("Usuário não encontrado"));
+            User user = userRepository.findByEmail(request.email())
+                    .orElseThrow(() -> new UnauthorizedException("Usuário não encontrado"));
 
-        if (!user.getActive()) {
-            throw new UnauthorizedException("Sua conta está inativa");
+            if (!user.getActive()) {
+                throw new UnauthorizedException("Sua conta está inativa");
+            }
+
+            String jwtToken = jwtService.generateAccessToken(user);
+            String refreshToken = jwtService.generateRefreshToken(user);
+
+            // Registo de auditoria de sucesso
+            auditLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    "LOGIN",
+                    "User",
+                    user.getId(),
+                    "Login efetuado com sucesso pelo usuário: " + user.getEmail(),
+                    "SUCCESS"
+            );
+
+            return new TokenResponse(jwtToken, refreshToken);
+        } catch (Exception e) {
+            // Registo de auditoria de falha
+            Long userId = null;
+            try {
+                userId = userRepository.findByEmail(request.email()).map(User::getId).orElse(null);
+            } catch (Exception ignored) {}
+
+            auditLogService.logAction(
+                    userId,
+                    request.email(),
+                    "LOGIN",
+                    "User",
+                    userId,
+                    "Falha na tentativa de login com o e-mail: " + request.email(),
+                    "FAILURE",
+                    e.getMessage()
+            );
+            throw e;
         }
-
-        String jwtToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-
-        return new TokenResponse(jwtToken, refreshToken);
     }
 
     public TokenResponse refresh(String refreshToken) {

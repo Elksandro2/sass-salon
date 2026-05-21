@@ -1,3 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #be8a83;
+  --color-primary-hover: #a1706a;
+  --color-secondary: #3b3036;
+  --color-secondary-hover: #261f23;
+  --color-bg-light: #fcf9f9;
+  --color-surface: #ffffff;
+  --color-text-dark: #2a2528;
+  --color-text-light: #7a7074;
+  --color-border-custom: #eae1e1;
+  --color-accent: #e5a49c;
+}
+
 :root {
   /* Cores Base - Salão de Beleza (Elegante e Moderno) */
   --primary-color: #be8a83; /* Rose Gold suave */
@@ -10,17 +25,6 @@
   --text-light: #7a7074;
   --border-color: #eae1e1;
   --accent-color: #e5a49c;
-
-  /* Sobrescrevendo variáveis do Bootstrap 5 para integração */
-  --bs-primary: var(--primary-color);
-  --bs-primary-rgb: 190, 138, 131;
-  --bs-secondary: var(--secondary-color);
-  --bs-secondary-rgb: 59, 48, 54;
-  --bs-body-bg: var(--bg-color);
-  --bs-body-color: var(--text-dark);
-  --bs-border-color: var(--border-color);
-  --bs-link-color: var(--primary-color);
-  --bs-link-hover-color: var(--primary-hover);
 
   /* Variáveis de estilo autoral */
   --radius-sm: 8px;

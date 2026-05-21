@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Form, Button, Alert } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import './Auth.css';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { AlertCircle } from 'lucide-react';
 
 interface LoginFormData {
   email: string;
@@ -24,10 +23,8 @@ export const Login = () => {
     setErrorMsg('');
     try {
       const response = await api.post('/auth/login', data);
-      // Passa true para redirect automaticamente (admin vai pro dashboard, outros continuam)
       login(response.data.accessToken, response.data.refreshToken, true);
       
-      // Se chegou aqui sem redirecionar, é cliente
       const pending = localStorage.getItem('pending_appointment');
       navigate(pending ? '/appointment' : '/');
     } catch (err) {
@@ -39,51 +36,77 @@ export const Login = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-image"></div>
-        <div className="auth-form-container">
-          <h2>Bem-vinda de volta</h2>
-          <p className="subtitle">Faça login para gerenciar seus agendamentos</p>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-[#fcf9f9] to-[#f7ebeb] px-4 py-8">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden w-full max-w-4xl flex">
+        {/* Left Side: Image (large screens only) */}
+        <div className="hidden lg:block lg:w-1/2 bg-[url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop')] bg-center bg-cover"></div>
 
-          {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
+        {/* Right Side: Form */}
+        <div className="w-full lg:w-1/2 px-6 py-12 sm:px-12 flex flex-col justify-center max-w-md mx-auto">
+          <h2 className="font-heading text-3xl font-extrabold text-[#3b3036] tracking-tight">
+            Bem-vinda de volta
+          </h2>
+          <p className="text-sm text-[#3b3036]/60 mt-2 mb-8">
+            Faça login para gerenciar seus agendamentos.
+          </p>
+
+          {errorMsg && (
+            <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm flex items-start gap-2.5 animate-fadeIn">
+              <AlertCircle size={18} className="shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
           
-          <Form onSubmit={handleSubmit(onSubmit)}>
-            <Form.Group className="mb-3" controlId="email">
-              <Form.Label>Email</Form.Label>
-              <Form.Control 
-                type="email" 
-                placeholder="Seu email"
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                E-mail
+              </label>
+              <input
+                type="email"
+                placeholder="seuemail@exemplo.com"
                 {...register('email', { required: 'Email é obrigatório' })}
-                isInvalid={!!errors.email}
+                className={`w-full text-sm px-4 py-3 bg-gray-50 border rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 outline-none transition-all ${
+                  errors.email ? 'border-rose-300 focus:border-rose-500' : 'border-gray-200 focus:border-[#be8a83]'
+                }`}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.email?.message as string}
-              </Form.Control.Feedback>
-            </Form.Group>
+              {errors.email && (
+                <span className="text-xs text-rose-500 font-semibold">{errors.email.message}</span>
+              )}
+            </div>
 
-            <Form.Group className="mb-4" controlId="password">
-              <Form.Label>Senha</Form.Label>
-              <Form.Control 
-                type="password" 
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider">
+                Senha
+              </label>
+              <input
+                type="password"
                 placeholder="Sua senha"
                 {...register('password', { required: 'Senha é obrigatória' })}
-                isInvalid={!!errors.password}
+                className={`w-full text-sm px-4 py-3 bg-gray-50 border rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 outline-none transition-all ${
+                  errors.password ? 'border-rose-300 focus:border-rose-500' : 'border-gray-200 focus:border-[#be8a83]'
+                }`}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.password?.message as string}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Button variant="primary" type="submit" className="w-100 mb-4" disabled={isLoading}>
-              {isLoading ? 'Acessando...' : 'Entrar na minha conta'}
-            </Button>
-            
-            <div className="text-center">
-              <span className="text-muted">Não tem uma conta? </span>
-              <Link to="/register" className="text-decoration-none fw-semibold">Cadastre-se</Link>
+              {errors.password && (
+                <span className="text-xs text-rose-500 font-semibold">{errors.password.message}</span>
+              )}
             </div>
-          </Form>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-6 py-3 bg-[#be8a83] text-white font-semibold text-sm rounded-xl hover:bg-[#a6726b] hover:shadow-lg hover:shadow-[#be8a83]/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isLoading ? 'Acessando...' : 'Entrar na minha conta'}
+            </button>
+            
+            <div className="text-center pt-4 text-sm">
+              <span className="text-gray-500">Não tem uma conta? </span>
+              <Link to="/register" className="text-[#be8a83] font-semibold hover:underline">
+                Cadastre-se
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </div>
