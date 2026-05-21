@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Form, Badge, Modal, Row, Col, Spinner, Alert } from 'react-bootstrap';
-import { Plus, Clock, User as UserIcon, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Clock, User as UserIcon, Calendar as CalendarIcon, X } from 'lucide-react';
 import { Table } from '../../../components/table/Table';
 import { ConfirmDialog } from '../../../components/modal/ConfirmDialog';
 import { PermissionGate } from '../../../components/permissions/PermissionGate';
@@ -14,6 +13,9 @@ import { usersApi } from '../users/services/users';
 import type { UserData } from '../users/services/users';
 import { useAlert } from '../../../hooks/useAlert';
 import { getApiErrorMessage } from '../../../utils/apiError';
+
+const selectCls = 'w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all';
+const labelCls = 'block text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider mb-1.5';
 
 function toLocalDateTimeIso(dtLocal: string): string {
   if (!dtLocal) return '';
@@ -63,16 +65,8 @@ export const AdminAppointments = () => {
     try {
       const data = await appointmentsApi.findAll();
       data.sort((a, b) => {
-        const ta = a.scheduledAt
-          ? parseDate(a.scheduledAt)
-          : a.preferredDate
-            ? new Date(a.preferredDate + 'T12:00:00').getTime()
-            : 0;
-        const tb = b.scheduledAt
-          ? parseDate(b.scheduledAt)
-          : b.preferredDate
-            ? new Date(b.preferredDate + 'T12:00:00').getTime()
-            : 0;
+        const ta = a.scheduledAt ? parseDate(a.scheduledAt) : a.preferredDate ? new Date(a.preferredDate + 'T12:00:00').getTime() : 0;
+        const tb = b.scheduledAt ? parseDate(b.scheduledAt) : b.preferredDate ? new Date(b.preferredDate + 'T12:00:00').getTime() : 0;
         return tb - ta;
       });
       setAppointments(data);
@@ -98,10 +92,7 @@ export const AdminAppointments = () => {
     }
   };
 
-  useEffect(() => {
-    loadAppointments();
-    loadFormData();
-  }, []);
+  useEffect(() => { loadAppointments(); loadFormData(); }, []);
 
   const handleStatusChange = async (id: number, newStatus: string) => {
     try {
@@ -118,7 +109,6 @@ export const AdminAppointments = () => {
       await showError('Preencha todos os campos, incluindo data e hora');
       return;
     }
-
     setIsSaving(true);
     try {
       await appointmentsApi.create({
@@ -129,20 +119,13 @@ export const AdminAppointments = () => {
       });
       setShowModal(false);
       loadAppointments();
-      resetForm();
+      setSelectedClient(''); setSelectedService(''); setSelectedEmployee(''); setSelectedDateTime('');
     } catch (error) {
       const msg = getApiErrorMessage(error, 'Erro ao criar agendamento');
       await showError(msg);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const resetForm = () => {
-    setSelectedClient('');
-    setSelectedService('');
-    setSelectedEmployee('');
-    setSelectedDateTime('');
   };
 
   const confirmCancel = async () => {
@@ -152,13 +135,8 @@ export const AdminAppointments = () => {
       setShowConfirm(false);
       loadAppointments();
     } catch (error) {
-        await showError('Erro ao cancelar agendamento');
+      await showError('Erro ao cancelar agendamento');
     }
-  };
-
-  const openConfirmModal = (item: AppointmentResponse) => {
-    setConfirmTarget(item);
-    setConfirmDateTime('');
   };
 
   const submitConfirm = async () => {
@@ -189,22 +167,20 @@ export const AdminAppointments = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <Badge bg="warning" text="dark">Pendente</Badge>;
-      case 'REQUESTED':
-        return <Badge bg="info" text="dark">Solicitado</Badge>;
-      case 'CONFIRMED':
-        return <Badge bg="primary">Confirmado</Badge>;
-      case 'DECLINED':
-        return <Badge bg="secondary">Recusado</Badge>;
-      case 'DONE':
-        return <Badge bg="success">Concluído</Badge>;
-      case 'CANCELLED':
-        return <Badge bg="danger">Cancelado</Badge>;
-      default:
-        return <Badge bg="secondary">{status}</Badge>;
-    }
+    const styles: Record<string, string> = {
+      PENDING: 'bg-amber-50 text-amber-700 border border-amber-200',
+      REQUESTED: 'bg-sky-50 text-sky-700 border border-sky-200',
+      CONFIRMED: 'bg-[#be8a83]/10 text-[#a6726b] border border-[#be8a83]/20',
+      DECLINED: 'bg-gray-100 text-gray-600 border border-gray-200',
+      DONE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      CANCELLED: 'bg-rose-50 text-rose-700 border border-rose-200',
+    };
+    const labels: Record<string, string> = { PENDING: 'Pendente', REQUESTED: 'Solicitado', CONFIRMED: 'Confirmado', DECLINED: 'Recusado', DONE: 'Concluído', CANCELLED: 'Cancelado' };
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${styles[status] || 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
+        {labels[status] || status}
+      </span>
+    );
   };
 
   const formatDate = (dateValue: string | number[] | null | undefined) => {
@@ -217,10 +193,7 @@ export const AdminAppointments = () => {
       date = new Date(dateValue);
     }
     if (isNaN(date.getTime())) return 'Data inválida';
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    }).format(date);
+    return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
   };
 
   const columns = [
@@ -228,11 +201,9 @@ export const AdminAppointments = () => {
       key: 'scheduledAt',
       label: 'Data / hora',
       render: (item: AppointmentResponse) =>
-        item.scheduledAt
-          ? formatDate(item.scheduledAt)
-          : item.preferredDate
-            ? `Pref.: ${new Date(item.preferredDate + 'T12:00:00').toLocaleDateString('pt-BR')} (a combinar)`
-            : 'A combinar'
+        item.scheduledAt ? formatDate(item.scheduledAt)
+          : item.preferredDate ? `Pref.: ${new Date(item.preferredDate + 'T12:00:00').toLocaleDateString('pt-BR')} (a combinar)`
+          : 'A combinar'
     },
     { key: 'clientName', label: 'Cliente' },
     { key: 'employeeName', label: 'Profissional' },
@@ -241,8 +212,8 @@ export const AdminAppointments = () => {
       key: 'notes',
       label: 'Obs.',
       render: (item: AppointmentResponse) => (
-        <span className="small text-muted" style={{ maxWidth: 220, display: 'inline-block' }}>
-          {item.clientNotes ? `${item.clientNotes.slice(0, 80)}${item.clientNotes.length > 80 ? '…' : ''}` : '—'}
+        <span className="text-xs text-gray-500 max-w-[200px] inline-block truncate">
+          {item.clientNotes ? `${item.clientNotes.slice(0, 60)}${item.clientNotes.length > 60 ? '…' : ''}` : '—'}
         </span>
       )
     },
@@ -250,34 +221,34 @@ export const AdminAppointments = () => {
       key: 'status',
       label: 'Status',
       render: (item: AppointmentResponse) => (
-        <div className="d-flex flex-column align-items-start gap-2">
+        <div className="flex flex-col items-start gap-2">
           {getStatusBadge(item.status)}
           {item.status === 'REQUESTED' && (
-            <div className="d-flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               <PermissionGate method="PATCH" endpoint={`/v1/appointments/${item.id}/confirm`}>
-                <Button size="sm" variant="primary" onClick={() => openConfirmModal(item)}>
+                <button onClick={() => { setConfirmTarget(item); setConfirmDateTime(''); }} className="px-2.5 py-1 bg-[#be8a83] text-white hover:bg-[#a6726b] text-xs font-semibold rounded-lg transition-all">
                   Definir horário
-                </Button>
+                </button>
               </PermissionGate>
               <PermissionGate method="PATCH" endpoint={`/v1/appointments/${item.id}/decline`}>
-                <Button size="sm" variant="outline-danger" onClick={() => handleDecline(item.id)}>
+                <button onClick={() => handleDecline(item.id)} className="px-2.5 py-1 border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-lg transition-all">
                   Recusar
-                </Button>
+                </button>
               </PermissionGate>
             </div>
           )}
           <PermissionGate method="PATCH" endpoint={`/v1/appointments/${item.id}/status`}>
             {item.status !== 'CANCELLED' && item.status !== 'DONE' && item.status !== 'DECLINED' && item.status !== 'REQUESTED' && (
-              <Form.Select
-                size="sm"
+              <select
                 value={item.status}
                 onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                className="text-xs px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#be8a83]/20 focus:border-[#be8a83] transition-all"
                 style={{ width: '140px' }}
               >
                 <option value="PENDING">Pendente</option>
                 <option value="CONFIRMED">Confirmado</option>
                 <option value="DONE">Concluído</option>
-              </Form.Select>
+              </select>
             )}
           </PermissionGate>
         </div>
@@ -289,16 +260,12 @@ export const AdminAppointments = () => {
       render: (item: AppointmentResponse) => (
         item.status !== 'CANCELLED' && item.status !== 'DONE' && item.status !== 'DECLINED' && (
           <PermissionGate method="PATCH" endpoint={`/v1/appointments/${item.id}/cancel`}>
-            <Button
-              variant="outline-danger"
-              size="sm"
-              onClick={() => {
-                setAppointmentToCancel(item.id);
-                setShowConfirm(true);
-              }}
+            <button
+              onClick={() => { setAppointmentToCancel(item.id); setShowConfirm(true); }}
+              className="px-2.5 py-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-lg transition-all whitespace-nowrap"
             >
               Cancelar
-            </Button>
+            </button>
           </PermissionGate>
         )
       )
@@ -306,143 +273,106 @@ export const AdminAppointments = () => {
   ];
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Agendamentos (Admin)</h2>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Agendamentos (Admin)</h2>
         <PermissionGate method="POST" endpoint="/v1/appointments">
-          <Button variant="primary" onClick={() => setShowModal(true)}>
-            <Plus size={18} className="me-2" />
-            Novo Agendamento
-          </Button>
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all shadow-xs">
+            <Plus size={18} /> Novo Agendamento
+          </button>
         </PermissionGate>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-5">
-          <Spinner animation="border" variant="primary" />
-          <p className="mt-2">Carregando agendamentos...</p>
+        <div className="flex items-center gap-2 text-sm text-[#3b3036]/60 py-8">
+          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#be8a83]"></div>
+          Carregando agendamentos...
         </div>
       ) : (
-        <Table
-          columns={columns}
-          data={appointments}
-          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-        />
+        <Table columns={columns} data={appointments} keyExtractor={(item) => item.id?.toString() || Math.random().toString()} />
       )}
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Novo Agendamento</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleCreateAppointment}>
-          <Modal.Body>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label><UserIcon size={16} className="me-1" /> Cliente</Form.Label>
-                  <Form.Select
-                    value={selectedClient}
-                    onChange={(e) => setSelectedClient(e.target.value)}
-                    required
-                  >
-                    <option value="">Selecione o cliente</option>
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label><Clock size={16} className="me-1" /> Serviço</Form.Label>
-                  <Form.Select
-                    value={selectedService}
-                    onChange={(e) => setSelectedService(e.target.value)}
-                    required
-                  >
-                    <option value="">Selecione o serviço</option>
-                    {services.map(s => (
-                      <option key={s.id} value={s.id}>{formatServiceOption(s)}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
+      {/* Create Appointment Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="font-heading text-lg font-bold text-[#3b3036]">Novo Agendamento</h3>
+              <button onClick={() => setShowModal(false)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleCreateAppointment}>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}><UserIcon size={14} className="inline mr-1" />Cliente</label>
+                    <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)} required className={selectCls}>
+                      <option value="">Selecione o cliente</option>
+                      {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}><Clock size={14} className="inline mr-1" />Serviço</label>
+                    <select value={selectedService} onChange={(e) => setSelectedService(e.target.value)} required className={selectCls}>
+                      <option value="">Selecione o serviço</option>
+                      {services.map(s => <option key={s.id} value={s.id}>{formatServiceOption(s)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}><UserIcon size={14} className="inline mr-1" />Profissional</label>
+                    <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)} required className={selectCls}>
+                      <option value="">Selecione a profissional</option>
+                      {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}><CalendarIcon size={14} className="inline mr-1" />Data e hora</label>
+                    <input type="datetime-local" value={selectedDateTime} onChange={(e) => setSelectedDateTime(e.target.value)} required className={selectCls} />
+                    <p className="text-xs text-gray-400 mt-1">Horário livre — sem grade fixa no sistema.</p>
+                  </div>
+                </div>
+                <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700">
+                  O agendamento nasce já <strong>confirmado</strong>. Clientes pelo site enviam uma <strong>solicitação</strong> para você aceitar e marcar o horário.
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+                <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2 border border-gray-200 font-semibold text-sm text-[#3b3036] hover:bg-gray-50 rounded-xl transition-all">Fechar</button>
+                <button type="submit" disabled={isSaving} className="px-5 py-2 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all disabled:opacity-50">
+                  {isSaving ? 'Salvando...' : 'Criar Agendamento'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label><UserIcon size={16} className="me-1" /> Profissional</Form.Label>
-                  <Form.Select
-                    value={selectedEmployee}
-                    onChange={(e) => setSelectedEmployee(e.target.value)}
-                    required
-                  >
-                    <option value="">Selecione a profissional</option>
-                    {employees.map(e => (
-                      <option key={e.id} value={e.id}>{e.name}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label><CalendarIcon size={16} className="me-1" /> Data e hora</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={selectedDateTime}
-                    onChange={(e) => setSelectedDateTime(e.target.value)}
-                    required
-                  />
-                  <Form.Text>Horário livre — sem grade fixa no sistema.</Form.Text>
-                </Form.Group>
-              </Col>
-            </Row>
-            <Alert variant="light" className="border small mb-0">
-              O agendamento nasce já <strong>confirmado</strong>. Clientes pelo site enviam uma <strong>solicitação</strong> para você aceitar e marcar o horário.
-            </Alert>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>Fechar</Button>
-            <Button variant="primary" type="submit" disabled={isSaving}>
-              {isSaving ? 'Salvando...' : 'Criar Agendamento'}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      {/* Confirm DateTime Modal */}
+      {confirmTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="font-heading text-lg font-bold text-[#3b3036]">Confirmar horário</h3>
+              {!confirmSaving && <button onClick={() => setConfirmTarget(null)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"><X size={20} /></button>}
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Defina data e hora para <strong>{confirmTarget.clientName}</strong>. Conflitos com outros agendamentos confirmados do mesmo profissional serão bloqueados.
+              </p>
+              <div>
+                <label className={labelCls}>Data e hora</label>
+                <input type="datetime-local" value={confirmDateTime} onChange={(e) => setConfirmDateTime(e.target.value)} className={selectCls} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+              <button type="button" onClick={() => setConfirmTarget(null)} disabled={confirmSaving} className="px-5 py-2 border border-gray-200 font-semibold text-sm text-[#3b3036] hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50">Cancelar</button>
+              <button onClick={submitConfirm} disabled={confirmSaving || !confirmDateTime} className="px-5 py-2 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all disabled:opacity-50">
+                {confirmSaving ? 'Salvando...' : 'Confirmar solicitação'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Modal show={!!confirmTarget} onHide={() => !confirmSaving && setConfirmTarget(null)} centered>
-        <Modal.Header closeButton={!confirmSaving}>
-          <Modal.Title>Confirmar horário</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p className="small text-muted mb-3">
-            Defina data e hora para {confirmTarget?.clientName}. Conflitos com outros agendamentos confirmados do mesmo profissional serão bloqueados.
-          </p>
-          <Form.Group>
-            <Form.Label>Data e hora</Form.Label>
-            <Form.Control
-              type="datetime-local"
-              value={confirmDateTime}
-              onChange={(e) => setConfirmDateTime(e.target.value)}
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setConfirmTarget(null)} disabled={confirmSaving}>Cancelar</Button>
-          <Button variant="primary" onClick={submitConfirm} disabled={confirmSaving || !confirmDateTime}>
-            {confirmSaving ? 'Salvando...' : 'Confirmar solicitação'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <ConfirmDialog
-        show={showConfirm}
-        onHide={() => setShowConfirm(false)}
-        onConfirm={confirmCancel}
-        title="Cancelar Agendamento"
-        message="Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita."
-      />
+      <ConfirmDialog show={showConfirm} onHide={() => setShowConfirm(false)} onConfirm={confirmCancel} title="Cancelar Agendamento" message="Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita." />
     </div>
   );
 };

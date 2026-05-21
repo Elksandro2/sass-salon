@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { reportsApi } from './services/reports';
 import type { FinancialReportResponse, AppointmentReportResponse } from './services/reports';
 import { cashFlowApi } from '../cashflow/services/cashflow';
@@ -10,6 +9,9 @@ import autoTable from 'jspdf-autotable';
 import { Download } from 'lucide-react';
 import { useAlert } from '../../../hooks/useAlert';
 import { getApiErrorMessage } from '../../../utils/apiError';
+
+const inputCls = 'text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all';
+const labelCls = 'block text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider mb-1.5';
 
 export const Reports = () => {
   const [financial, setFinancial] = useState<FinancialReportResponse | null>(null);
@@ -41,9 +43,7 @@ export const Reports = () => {
     }
   };
 
-  useEffect(() => {
-    loadReports();
-  }, [dateFrom, dateTo]);
+  useEffect(() => { loadReports(); }, [dateFrom, dateTo]);
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -51,8 +51,6 @@ export const Reports = () => {
     doc.text('Relatório Financeiro e Agendamentos', 14, 22);
     doc.setFontSize(11);
     doc.text(`Período: ${financial?.period || 'N/A'}`, 14, 30);
-
-    // Financial Summary
     doc.setFontSize(14);
     doc.text('Resumo Financeiro', 14, 45);
     autoTable(doc, {
@@ -64,8 +62,6 @@ export const Reports = () => {
         `R$ ${financial?.netProfit.toFixed(2) || '0.00'}`
       ]],
     });
-
-    // Appointments Summary
     const finalY = (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || 50;
     doc.text('Resumo de Agendamentos', 14, finalY + 15);
     autoTable(doc, {
@@ -78,20 +74,12 @@ export const Reports = () => {
         appointments?.cancelled || 0
       ]],
     });
-
     doc.save('relatorio-salao.pdf');
   };
 
-  // Prepare chart data
-  const chartDataEmployee = Object.entries(appointments?.byEmployee || {}).map(([name, count]) => ({
-    name, Agendamentos: count
-  }));
+  const chartDataEmployee = Object.entries(appointments?.byEmployee || {}).map(([name, count]) => ({ name, Agendamentos: count }));
+  const chartDataService = Object.entries(appointments?.byService || {}).map(([name, count]) => ({ name, Agendamentos: count }));
 
-  const chartDataService = Object.entries(appointments?.byService || {}).map(([name, count]) => ({
-    name, Agendamentos: count
-  }));
-
-  // Prepare revenue chart (group by date)
   const revenueByDate: Record<string, number> = {};
   cashFlows.forEach(cf => {
     if (cf.type === 'INCOME') {
@@ -99,190 +87,161 @@ export const Reports = () => {
       revenueByDate[d] = (revenueByDate[d] || 0) + cf.amount;
     }
   });
-  
   const chartDataRevenue = Object.entries(revenueByDate)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, amount]) => ({
-      Data: new Date(date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}),
+      Data: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
       Receita: amount
     }));
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Dashboard & Relatórios</h2>
-        <Button variant="danger" onClick={generatePDF} disabled={isLoading}>
-          <Download size={18} className="me-2" />
-          Exportar PDF
-        </Button>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Dashboard & Relatórios</h2>
+        <button
+          onClick={generatePDF}
+          disabled={isLoading}
+          className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white hover:bg-rose-700 font-semibold text-sm rounded-xl transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none"
+        >
+          <Download size={18} /> Exportar PDF
+        </button>
       </div>
 
-      <Row className="mb-4">
-        <Col md={3}>
-          <Form.Group>
-            <Form.Label>De</Form.Label>
-            <Form.Control type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          </Form.Group>
-        </Col>
-        <Col md={3}>
-          <Form.Group>
-            <Form.Label>Até</Form.Label>
-            <Form.Control type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          </Form.Group>
-        </Col>
-        <Col md={6} className="d-flex align-items-end">
-          <Button variant="outline-secondary" onClick={() => { setDateFrom(''); setDateTo(''); }}>
-            Mês Atual (Padrão)
-          </Button>
-        </Col>
-      </Row>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 items-end bg-white rounded-2xl border border-gray-100 p-4 shadow-xs">
+        <div className="space-y-1.5">
+          <label className={labelCls}>De</label>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={inputCls} />
+        </div>
+        <div className="space-y-1.5">
+          <label className={labelCls}>Até</label>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} />
+        </div>
+        <button
+          onClick={() => { setDateFrom(''); setDateTo(''); }}
+          className="px-4 py-2.5 border border-gray-200 text-sm font-semibold text-[#3b3036]/80 hover:bg-gray-50 rounded-xl transition-all"
+        >
+          Mês Atual (Padrão)
+        </button>
+      </div>
 
       {isLoading ? (
-        <div className="text-center py-5">
-          <Spinner animation="border" variant="primary" />
-          <p className="mt-3">Gerando relatórios...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#be8a83]"></div>
+          <p className="text-sm text-[#3b3036]/60 font-medium">Gerando relatórios...</p>
         </div>
       ) : (
         <>
-          <h4 className="mb-3">Resumo Financeiro ({financial?.period})</h4>
-          <Row className="g-4 mb-5">
-            <Col md={4}>
-              <Card className="shadow-sm border-0 border-start border-success border-5 h-100">
-                <Card.Body>
-                  <Card.Subtitle className="text-muted mb-2">Total Receitas</Card.Subtitle>
-                  <Card.Title className="fs-3 text-success">R$ {financial?.totalIncome.toFixed(2)}</Card.Title>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={4}>
-              <Card className="shadow-sm border-0 border-start border-danger border-5 h-100">
-                <Card.Body>
-                  <Card.Subtitle className="text-muted mb-2">Total Despesas</Card.Subtitle>
-                  <Card.Title className="fs-3 text-danger">R$ {financial?.totalExpense.toFixed(2)}</Card.Title>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={4}>
-              <Card className={`shadow-sm border-0 border-start border-5 h-100 ${financial?.netProfit! >= 0 ? 'border-primary' : 'border-danger'}`}>
-                <Card.Body>
-                  <Card.Subtitle className="text-muted mb-2">Lucro Líquido</Card.Subtitle>
-                  <Card.Title className={`fs-3 ${financial?.netProfit! >= 0 ? 'text-primary' : 'text-danger'}`}>
-                    R$ {financial?.netProfit.toFixed(2)}
-                  </Card.Title>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+          {/* Financial Summary */}
+          <div>
+            <h4 className="font-heading font-bold text-lg text-[#3b3036] mb-4">
+              Resumo Financeiro <span className="text-sm font-normal text-gray-400">({financial?.period})</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="bg-white rounded-2xl border-l-4 border-emerald-500 border border-gray-100 p-5 shadow-xs">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Receitas</p>
+                <p className="text-3xl font-extrabold text-emerald-600">R$ {financial?.totalIncome.toFixed(2)}</p>
+              </div>
+              <div className="bg-white rounded-2xl border-l-4 border-rose-500 border border-gray-100 p-5 shadow-xs">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Despesas</p>
+                <p className="text-3xl font-extrabold text-rose-600">R$ {financial?.totalExpense.toFixed(2)}</p>
+              </div>
+              <div className={`bg-white rounded-2xl border-l-4 ${financial?.netProfit! >= 0 ? 'border-[#be8a83]' : 'border-rose-500'} border border-gray-100 p-5 shadow-xs`}>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Lucro Líquido</p>
+                <p className={`text-3xl font-extrabold ${financial?.netProfit! >= 0 ? 'text-[#be8a83]' : 'text-rose-600'}`}>
+                  R$ {financial?.netProfit.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
 
-          {/* Line Chart para Receita */}
-          <h4 className="mb-3">Evolução de Receitas</h4>
-          <Card className="shadow-sm mb-5">
-            <Card.Body>
+          {/* Revenue Chart */}
+          <div>
+            <h4 className="font-heading font-bold text-lg text-[#3b3036] mb-4">Evolução de Receitas</h4>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
               <div style={{ height: 300, width: '100%' }}>
                 {chartDataRevenue.length > 0 ? (
                   <ResponsiveContainer>
                     <LineChart data={chartDataRevenue}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="Data" />
-                      <YAxis />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                      <XAxis dataKey="Data" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip formatter={(val: any) => `R$ ${Number(val).toFixed(2)}`} />
                       <Legend />
-                      <Line type="monotone" dataKey="Receita" stroke="#198754" activeDot={{ r: 8 }} />
+                      <Line type="monotone" dataKey="Receita" stroke="#be8a83" strokeWidth={2} activeDot={{ r: 8 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="d-flex h-100 align-items-center justify-content-center text-muted">
+                  <div className="flex items-center justify-center h-full text-sm text-gray-400">
                     Nenhuma receita no período selecionado.
                   </div>
                 )}
               </div>
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
 
-          <h4 className="mb-3">Desempenho de Agendamentos ({appointments?.period})</h4>
-          <Row className="g-4 mb-5">
-            <Col md={3}>
-              <Card className="text-center shadow-sm h-100">
-                <Card.Body>
-                  <h1 className="text-primary">{appointments?.totalAppointments}</h1>
-                  <p className="text-muted mb-0">Total</p>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card className="text-center shadow-sm h-100">
-                <Card.Body>
-                  <h1 className="text-success">{appointments?.done}</h1>
-                  <p className="text-muted mb-0">Concluídos</p>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card className="text-center shadow-sm h-100">
-                <Card.Body>
-                  <h1 className="text-warning">{appointments?.pending}</h1>
-                  <p className="text-muted mb-0">Pendentes</p>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card className="text-center shadow-sm h-100">
-                <Card.Body>
-                  <h1 className="text-danger">{appointments?.cancelled}</h1>
-                  <p className="text-muted mb-0">Cancelados</p>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+          {/* Appointment Stats */}
+          <div>
+            <h4 className="font-heading font-bold text-lg text-[#3b3036] mb-4">
+              Desempenho de Agendamentos <span className="text-sm font-normal text-gray-400">({appointments?.period})</span>
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {[
+                { label: 'Total', value: appointments?.totalAppointments, color: 'text-indigo-600' },
+                { label: 'Concluídos', value: appointments?.done, color: 'text-emerald-600' },
+                { label: 'Pendentes', value: appointments?.pending, color: 'text-amber-600' },
+                { label: 'Cancelados', value: appointments?.cancelled, color: 'text-rose-600' },
+              ].map((stat, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 text-center shadow-xs">
+                  <p className={`text-4xl font-extrabold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
 
-          <Row className="g-4 mb-4">
-            <Col md={6}>
-              <Card className="shadow-sm h-100">
-                <Card.Header className="bg-white"><strong>Por Profissional</strong></Card.Header>
-                <Card.Body>
-                  <div style={{ height: 300, width: '100%' }}>
-                    {chartDataEmployee.length > 0 ? (
-                      <ResponsiveContainer>
-                        <BarChart data={chartDataEmployee}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="Agendamentos" fill="#0d6efd" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <p className="text-muted">Nenhum dado</p>
-                    )}
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={6}>
-              <Card className="shadow-sm h-100">
-                <Card.Header className="bg-white"><strong>Por Serviço</strong></Card.Header>
-                <Card.Body>
-                  <div style={{ height: 300, width: '100%' }}>
-                    {chartDataService.length > 0 ? (
-                      <ResponsiveContainer>
-                        <BarChart data={chartDataService} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis dataKey="name" type="category" width={100} />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="Agendamentos" fill="#6f42c1" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <p className="text-muted">Nenhum dado</p>
-                    )}
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-gray-50">
+                  <span className="font-semibold text-sm text-[#3b3036]">Por Profissional</span>
+                </div>
+                <div className="p-4" style={{ height: 300 }}>
+                  {chartDataEmployee.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={chartDataEmployee}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Bar dataKey="Agendamentos" fill="#be8a83" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-sm text-gray-400">Nenhum dado</div>
+                  )}
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-gray-50">
+                  <span className="font-semibold text-sm text-[#3b3036]">Por Serviço</span>
+                </div>
+                <div className="p-4" style={{ height: 300 }}>
+                  {chartDataService.length > 0 ? (
+                    <ResponsiveContainer>
+                      <BarChart data={chartDataService} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                        <XAxis type="number" tick={{ fontSize: 11 }} />
+                        <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Bar dataKey="Agendamentos" fill="#3b3036" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-sm text-gray-400">Nenhum dado</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>

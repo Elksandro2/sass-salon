@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Button, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { Table } from '../../../components/table/Table';
@@ -10,6 +9,9 @@ import { usersApi } from './services/users';
 import type { UserData, UserUpdateRequest, UserCreateRequest } from './services/users';
 import { useAlert } from '../../../hooks/useAlert';
 import { getApiErrorMessage } from '../../../utils/apiError';
+
+const inputCls = 'w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all';
+const labelCls = 'block text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider mb-1.5';
 
 export const Users = () => {
   const [users, setUsers] = useState<UserData[]>([]);
@@ -37,9 +39,7 @@ export const Users = () => {
     }
   };
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
+  useEffect(() => { loadUsers(); }, []);
 
   const handleOpenForm = (user?: UserData) => {
     reset();
@@ -53,7 +53,7 @@ export const Users = () => {
     } else {
       setEditingUser(null);
       setValue('active', true);
-      setValue('roleId', 4); // Default to CLIENTE
+      setValue('roleId', 4);
     }
     setShowForm(true);
   };
@@ -99,33 +99,27 @@ export const Users = () => {
     { key: 'name', label: 'Nome' },
     { key: 'email', label: 'Email' },
     { key: 'role', label: 'Papel' },
-    { 
-      key: 'active', 
-      label: 'Status',
-      render: (item: UserData) => item.active ? 'Ativo' : 'Inativo'
-    },
+    { key: 'active', label: 'Status', render: (item: UserData) => item.active ? 'Ativo' : 'Inativo' },
     {
       key: 'actions',
       label: 'Ações',
       render: (item: UserData) => (
-        <div className="d-flex gap-2">
+        <div className="flex gap-2">
           <PermissionGate method="PATCH" endpoint={`/v1/users/${item.id}`}>
-            <Button variant="outline-primary" size="sm" onClick={() => handleOpenForm(item)}>
-              <Edit size={16} />
-            </Button>
-          </PermissionGate>
-          
-          <PermissionGate method="DELETE" endpoint={`/v1/users/${item.id}`}>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={() => {
-                setUserToDelete(item.id);
-                setShowConfirm(true);
-              }}
+            <button
+              onClick={() => handleOpenForm(item)}
+              className="p-1.5 text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all"
             >
-              <Trash2 size={16} />
-            </Button>
+              <Edit size={15} />
+            </button>
+          </PermissionGate>
+          <PermissionGate method="DELETE" endpoint={`/v1/users/${item.id}`}>
+            <button
+              onClick={() => { setUserToDelete(item.id); setShowConfirm(true); }}
+              className="p-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all"
+            >
+              <Trash2 size={15} />
+            </button>
           </PermissionGate>
         </div>
       )
@@ -133,65 +127,63 @@ export const Users = () => {
   ];
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gerenciar Clientes</h2>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Gerenciar Clientes</h2>
         <PermissionGate method="POST" endpoint="/v1/users">
-          <Button variant="primary" onClick={() => handleOpenForm()}>
-            <Plus size={18} className="me-2" /> Novo Cliente/Funcionário
-          </Button>
+          <button
+            onClick={() => handleOpenForm()}
+            className="flex items-center gap-2 px-4 py-2 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all shadow-xs"
+          >
+            <Plus size={18} /> Novo Cliente/Funcionário
+          </button>
         </PermissionGate>
       </div>
 
       {isLoading ? (
-        <p>Carregando dados...</p>
+        <div className="flex items-center gap-2 text-sm text-[#3b3036]/60 py-8">
+          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#be8a83]"></div>
+          Carregando dados...
+        </div>
       ) : (
-        <Table 
-          columns={columns} 
-          data={users} 
-          keyExtractor={(item) => item.id} 
-        />
+        <Table columns={columns} data={users} keyExtractor={(item) => item.id} />
       )}
 
-      <ModalForm
-        show={showForm}
-        onHide={() => setShowForm(false)}
-        title={editingUser ? "Editar Conta" : "Nova Conta"}
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <Form.Group className="mb-3">
-          <Form.Label>Nome</Form.Label>
-          <Form.Control type="text" {...register('name', { required: true })} />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Email</Form.Label>
-          <Form.Control type="email" {...register('email', { required: true })} />
-        </Form.Group>
-        
-        <Form.Group className="mb-3">
-          <Form.Label>Tipo de Conta (Papel)</Form.Label>
-          <Form.Select {...register('roleId', { required: true })}>
-            <option value="4">Cliente</option>
-            <option value="3">Funcionária</option>
-            <option value="2">Gerente</option>
-            <option value="1">Administrador</option>
-          </Form.Select>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Telefone</Form.Label>
-          <Form.Control type="text" {...register('phone')} />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>{editingUser ? "Nova Senha (opcional)" : "Senha *"}</Form.Label>
-          <Form.Control type="password" {...register('password', { required: !editingUser })} />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Check type="switch" label="Conta Ativa" {...register('active')} />
-        </Form.Group>
+      <ModalForm show={showForm} onHide={() => setShowForm(false)} title={editingUser ? 'Editar Conta' : 'Nova Conta'} onSubmit={handleSubmit(onSubmit)}>
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Nome</label>
+            <input type="text" className={inputCls} {...register('name', { required: true })} />
+          </div>
+          <div>
+            <label className={labelCls}>Email</label>
+            <input type="email" className={inputCls} {...register('email', { required: true })} />
+          </div>
+          <div>
+            <label className={labelCls}>Tipo de Conta (Papel)</label>
+            <select className={inputCls} {...register('roleId', { required: true })}>
+              <option value="4">Cliente</option>
+              <option value="3">Funcionária</option>
+              <option value="2">Gerente</option>
+              <option value="1">Administrador</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Telefone</label>
+            <input type="text" className={inputCls} {...register('phone')} />
+          </div>
+          <div>
+            <label className={labelCls}>{editingUser ? 'Nova Senha (opcional)' : 'Senha *'}</label>
+            <input type="password" className={inputCls} {...register('password', { required: !editingUser })} />
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" {...register('active')} />
+              <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#be8a83]"></div>
+            </label>
+            <span className="text-sm font-semibold text-[#3b3036]">Conta Ativa</span>
+          </div>
+        </div>
       </ModalForm>
 
       <ConfirmDialog

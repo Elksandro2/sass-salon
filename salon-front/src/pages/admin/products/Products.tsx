@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Button, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Table } from '../../../components/table/Table';
@@ -10,6 +9,9 @@ import { productsApi } from './services/products';
 import type { ProductData } from './services/products';
 import { getApiErrorMessage } from '../../../utils/apiError';
 import { useAlert } from '../../../hooks/useAlert';
+
+const inputCls = 'w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all';
+const labelCls = 'block text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider mb-1.5';
 
 export const Products = () => {
   const [products, setProducts] = useState<ProductData[]>([]);
@@ -38,9 +40,7 @@ export const Products = () => {
     }
   };
 
-  useEffect(() => {
-    loadProducts();
-  }, [filterActive]);
+  useEffect(() => { loadProducts(); }, [filterActive]);
 
   const handleOpenForm = (product?: ProductData) => {
     reset();
@@ -49,7 +49,7 @@ export const Products = () => {
       setValue('name', product.name);
       setValue('stock', product.stock);
       setValue('price', product.price);
-      setValue('active', product.active !== false); // default to true if undefined
+      setValue('active', product.active !== false);
     } else {
       setEditingProduct(null);
       setValue('stock', 0);
@@ -87,39 +87,23 @@ export const Products = () => {
 
   const columns = [
     { key: 'name', label: 'Nome do Produto' },
-    { 
-      key: 'price', 
-      label: 'Preço',
-      render: (item: ProductData) => `R$ ${item.price.toFixed(2)}`
-    },
+    { key: 'price', label: 'Preço', render: (item: ProductData) => `R$ ${item.price.toFixed(2)}` },
     { key: 'stock', label: 'Estoque' },
-    { 
-      key: 'active', 
-      label: 'Status',
-      render: (item: ProductData) => item.active !== false ? 'Ativo' : 'Inativo'
-    },
+    { key: 'active', label: 'Status', render: (item: ProductData) => item.active !== false ? 'Ativo' : 'Inativo' },
     {
       key: 'actions',
       label: 'Ações',
       render: (item: ProductData) => (
-        <div className="d-flex gap-2">
+        <div className="flex gap-2">
           <PermissionGate method="PUT" endpoint={`/v1/products/${item.id}`}>
-            <Button variant="outline-primary" size="sm" onClick={() => handleOpenForm(item)}>
-              <Edit size={16} />
-            </Button>
+            <button onClick={() => handleOpenForm(item)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all">
+              <Edit size={15} />
+            </button>
           </PermissionGate>
-          
           <PermissionGate method="DELETE" endpoint={`/v1/products/${item.id}`}>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={() => {
-                setProductToDelete(item.id!);
-                setShowConfirm(true);
-              }}
-            >
-              <Trash2 size={16} />
-            </Button>
+            <button onClick={() => { setProductToDelete(item.id!); setShowConfirm(true); }} className="p-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all">
+              <Trash2 size={15} />
+            </button>
           </PermissionGate>
         </div>
       )
@@ -127,94 +111,67 @@ export const Products = () => {
   ];
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gerenciar Produtos</h2>
-        <div className="d-flex gap-2">
-          <Form.Select 
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Gerenciar Produtos</h2>
+        <div className="flex gap-3">
+          <select
             value={filterActive === undefined ? 'ALL' : filterActive ? 'ACTIVE' : 'INACTIVE'}
             onChange={(e) => {
               const val = e.target.value;
               setFilterActive(val === 'ALL' ? undefined : val === 'ACTIVE');
             }}
-            style={{ width: 'auto' }}
+            className="text-sm px-3 py-2 bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] transition-all"
           >
             <option value="ALL">Todos os Registros</option>
             <option value="ACTIVE">Apenas Ativos</option>
             <option value="INACTIVE">Apenas Inativos</option>
-          </Form.Select>
+          </select>
           <PermissionGate method="POST" endpoint="/v1/products">
-            <Button variant="primary" onClick={() => handleOpenForm()}>
-              <Plus size={18} className="me-2" />
-              Novo Produto
-            </Button>
+            <button onClick={() => handleOpenForm()} className="flex items-center gap-2 px-4 py-2 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all shadow-xs">
+              <Plus size={18} /> Novo Produto
+            </button>
           </PermissionGate>
         </div>
       </div>
 
       {isLoading ? (
-        <p>Carregando produtos...</p>
+        <div className="flex items-center gap-2 text-sm text-[#3b3036]/60 py-8">
+          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#be8a83]"></div>
+          Carregando produtos...
+        </div>
       ) : (
-        <Table 
-          columns={columns} 
-          data={products} 
-          keyExtractor={(item) => item.id!} 
-        />
+        <Table columns={columns} data={products} keyExtractor={(item) => item.id!} />
       )}
 
-      <ModalForm
-        show={showForm}
-        onHide={() => setShowForm(false)}
-        title={editingProduct ? 'Editar Produto' : 'Novo Produto'}
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <Form.Group className="mb-3">
-          <Form.Label>Nome do Produto</Form.Label>
-          <Form.Control 
-            type="text" 
-            {...register('name', { required: 'Nome é obrigatório', minLength: { value: 3, message: 'Mín. 3 caracteres'} })}
-            isInvalid={!!errors.name}
-          />
-          <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Estoque Inicial</Form.Label>
-          <Form.Control 
-            type="number" 
-            {...register('stock', { required: 'Estoque é obrigatório', min: { value: 0, message: 'Não pode ser negativo'} })}
-            isInvalid={!!errors.stock}
-          />
-          <Form.Control.Feedback type="invalid">{errors.stock?.message}</Form.Control.Feedback>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Preço (R$)</Form.Label>
-          <Form.Control 
-            type="number" 
-            step="0.01" 
-            {...register('price', { required: 'Preço é obrigatório', min: { value: 0, message: 'Não pode ser negativo'} })}
-            isInvalid={!!errors.price}
-          />
-          <Form.Control.Feedback type="invalid">{errors.price?.message}</Form.Control.Feedback>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Check 
-            type="switch"
-            label="Produto Ativo"
-            {...register('active')}
-          />
-        </Form.Group>
+      <ModalForm show={showForm} onHide={() => setShowForm(false)} title={editingProduct ? 'Editar Produto' : 'Novo Produto'} onSubmit={handleSubmit(onSubmit)}>
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Nome do Produto</label>
+            <input type="text" className={`${inputCls} ${errors.name ? 'border-rose-300' : ''}`} {...register('name', { required: 'Nome é obrigatório', minLength: { value: 3, message: 'Mín. 3 caracteres'} })} />
+            {errors.name && <span className="text-xs text-rose-500 font-semibold">{errors.name.message}</span>}
+          </div>
+          <div>
+            <label className={labelCls}>Estoque Inicial</label>
+            <input type="number" className={`${inputCls} ${errors.stock ? 'border-rose-300' : ''}`} {...register('stock', { required: 'Estoque é obrigatório', min: { value: 0, message: 'Não pode ser negativo'} })} />
+            {errors.stock && <span className="text-xs text-rose-500 font-semibold">{errors.stock.message}</span>}
+          </div>
+          <div>
+            <label className={labelCls}>Preço (R$)</label>
+            <input type="number" step="0.01" className={`${inputCls} ${errors.price ? 'border-rose-300' : ''}`} {...register('price', { required: 'Preço é obrigatório', min: { value: 0, message: 'Não pode ser negativo'} })} />
+            {errors.price && <span className="text-xs text-rose-500 font-semibold">{errors.price.message}</span>}
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" {...register('active')} />
+              <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#be8a83]"></div>
+            </label>
+            <span className="text-sm font-semibold text-[#3b3036]">Produto Ativo</span>
+          </div>
+        </div>
       </ModalForm>
 
-      <ConfirmDialog
-        show={showConfirm}
-        onHide={() => setShowConfirm(false)}
-        onConfirm={confirmDelete}
-        title="Excluir Produto"
-        message="Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
-      />
+      <ConfirmDialog show={showConfirm} onHide={() => setShowConfirm(false)} onConfirm={confirmDelete} title="Excluir Produto" message="Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita." />
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Button, Form, Row, Col, Badge } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { Plus, Trash2 } from 'lucide-react';
 import { Table } from '../../../components/table/Table';
@@ -10,6 +9,9 @@ import { cashFlowApi } from './services/cashflow';
 import type { CashFlowData } from './services/cashflow';
 import { getApiErrorMessage } from '../../../utils/apiError';
 import { useAlert } from '../../../hooks/useAlert';
+
+const inputCls = 'w-full text-sm px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#be8a83]/20 focus:border-[#be8a83] outline-none transition-all';
+const labelCls = 'block text-xs font-semibold text-[#3b3036]/70 uppercase tracking-wider mb-1.5';
 
 export const CashFlow = () => {
   const [cashFlows, setCashFlows] = useState<CashFlowData[]>([]);
@@ -38,15 +40,10 @@ export const CashFlow = () => {
     }
   };
 
-  useEffect(() => {
-    loadCashFlows();
-  }, [dateFrom, dateTo]);
+  useEffect(() => { loadCashFlows(); }, [dateFrom, dateTo]);
 
   const handleOpenForm = () => {
-    reset({
-      type: 'INCOME',
-      date: new Date().toISOString().split('T')[0]
-    });
+    reset({ type: 'INCOME', date: new Date().toISOString().split('T')[0] });
     setShowForm(true);
   };
 
@@ -74,26 +71,26 @@ export const CashFlow = () => {
   };
 
   const columns = [
-    { 
-      key: 'date', 
-      label: 'Data',
-      render: (item: CashFlowData) => new Date(item.date).toLocaleDateString('pt-BR')
-    },
+    { key: 'date', label: 'Data', render: (item: CashFlowData) => new Date(item.date).toLocaleDateString('pt-BR') },
     { key: 'description', label: 'Descrição' },
-    { 
-      key: 'type', 
+    {
+      key: 'type',
       label: 'Tipo',
       render: (item: CashFlowData) => (
-        item.type === 'INCOME' 
-          ? <Badge bg="success">Entrada</Badge> 
-          : <Badge bg="danger">Saída</Badge>
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+          item.type === 'INCOME'
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            : 'bg-rose-50 text-rose-700 border border-rose-200'
+        }`}>
+          {item.type === 'INCOME' ? 'Entrada' : 'Saída'}
+        </span>
       )
     },
-    { 
-      key: 'amount', 
+    {
+      key: 'amount',
       label: 'Valor',
       render: (item: CashFlowData) => (
-        <span className={item.type === 'INCOME' ? 'text-success' : 'text-danger'}>
+        <span className={`font-semibold ${item.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
           {item.type === 'INCOME' ? '+' : '-'} R$ {item.amount.toFixed(2)}
         </span>
       )
@@ -103,116 +100,82 @@ export const CashFlow = () => {
       label: 'Ações',
       render: (item: CashFlowData) => (
         <PermissionGate method="DELETE" endpoint={`/v1/cashflow/${item.id}`}>
-          <Button 
-            variant="outline-danger" 
-            size="sm" 
-            onClick={() => {
-              setItemToDelete(item.id!);
-              setShowConfirm(true);
-            }}
+          <button
+            onClick={() => { setItemToDelete(item.id!); setShowConfirm(true); }}
+            className="p-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all"
           >
-            <Trash2 size={16} />
-          </Button>
+            <Trash2 size={15} />
+          </button>
         </PermissionGate>
       )
     }
   ];
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Fluxo de Caixa</h2>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Fluxo de Caixa</h2>
         <PermissionGate method="POST" endpoint="/v1/cashflow">
-          <Button variant="primary" onClick={handleOpenForm}>
-            <Plus size={18} className="me-2" />
-            Novo Registro
-          </Button>
+          <button onClick={handleOpenForm} className="flex items-center gap-2 px-4 py-2 bg-[#be8a83] text-white hover:bg-[#a6726b] font-semibold text-sm rounded-xl transition-all shadow-xs">
+            <Plus size={18} /> Novo Registro
+          </button>
         </PermissionGate>
       </div>
 
-      <Row className="mb-4">
-        <Col md={3}>
-          <Form.Group>
-            <Form.Label>De</Form.Label>
-            <Form.Control type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          </Form.Group>
-        </Col>
-        <Col md={3}>
-          <Form.Group>
-            <Form.Label>Até</Form.Label>
-            <Form.Control type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          </Form.Group>
-        </Col>
-        <Col md={6} className="d-flex align-items-end">
-          <Button variant="outline-secondary" onClick={() => { setDateFrom(''); setDateTo(''); }}>
-            Limpar Filtros
-          </Button>
-        </Col>
-      </Row>
+      <div className="flex flex-wrap gap-4 items-end bg-white rounded-2xl border border-gray-100 p-4 shadow-xs">
+        <div className="space-y-1.5">
+          <label className={labelCls}>De</label>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={inputCls} />
+        </div>
+        <div className="space-y-1.5">
+          <label className={labelCls}>Até</label>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} />
+        </div>
+        <button
+          onClick={() => { setDateFrom(''); setDateTo(''); }}
+          className="px-4 py-2.5 border border-gray-200 text-sm font-semibold text-[#3b3036]/80 hover:bg-gray-50 rounded-xl transition-all"
+        >
+          Limpar Filtros
+        </button>
+      </div>
 
       {isLoading ? (
-        <p>Carregando registros...</p>
+        <div className="flex items-center gap-2 text-sm text-[#3b3036]/60 py-8">
+          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#be8a83]"></div>
+          Carregando registros...
+        </div>
       ) : (
-        <Table 
-          columns={columns} 
-          data={cashFlows} 
-          keyExtractor={(item) => item.id!} 
-        />
+        <Table columns={columns} data={cashFlows} keyExtractor={(item) => item.id!} />
       )}
 
-      <ModalForm
-        show={showForm}
-        onHide={() => setShowForm(false)}
-        title="Novo Registro"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <Form.Group className="mb-3">
-          <Form.Label>Tipo</Form.Label>
-          <Form.Select {...register('type', { required: 'Tipo é obrigatório' })}>
-            <option value="INCOME">Entrada (Receita)</option>
-            <option value="EXPENSE">Saída (Despesa)</option>
-          </Form.Select>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Valor (R$)</Form.Label>
-          <Form.Control 
-            type="number" 
-            step="0.01" 
-            {...register('amount', { required: 'Valor é obrigatório', min: { value: 0.01, message: 'Valor inválido' } })}
-            isInvalid={!!errors.amount}
-          />
-          <Form.Control.Feedback type="invalid">{errors.amount?.message}</Form.Control.Feedback>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Descrição</Form.Label>
-          <Form.Control 
-            type="text" 
-            {...register('description', { required: 'Descrição é obrigatória' })}
-            isInvalid={!!errors.description}
-          />
-          <Form.Control.Feedback type="invalid">{errors.description?.message}</Form.Control.Feedback>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Data</Form.Label>
-          <Form.Control 
-            type="date" 
-            {...register('date', { required: 'Data é obrigatória' })}
-            isInvalid={!!errors.date}
-          />
-          <Form.Control.Feedback type="invalid">{errors.date?.message}</Form.Control.Feedback>
-        </Form.Group>
+      <ModalForm show={showForm} onHide={() => setShowForm(false)} title="Novo Registro" onSubmit={handleSubmit(onSubmit)}>
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Tipo</label>
+            <select className={inputCls} {...register('type', { required: 'Tipo é obrigatório' })}>
+              <option value="INCOME">Entrada (Receita)</option>
+              <option value="EXPENSE">Saída (Despesa)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Valor (R$)</label>
+            <input type="number" step="0.01" className={`${inputCls} ${errors.amount ? 'border-rose-300' : ''}`} {...register('amount', { required: 'Valor é obrigatório', min: { value: 0.01, message: 'Valor inválido' } })} />
+            {errors.amount && <span className="text-xs text-rose-500 font-semibold">{errors.amount.message}</span>}
+          </div>
+          <div>
+            <label className={labelCls}>Descrição</label>
+            <input type="text" className={`${inputCls} ${errors.description ? 'border-rose-300' : ''}`} {...register('description', { required: 'Descrição é obrigatória' })} />
+            {errors.description && <span className="text-xs text-rose-500 font-semibold">{errors.description.message}</span>}
+          </div>
+          <div>
+            <label className={labelCls}>Data</label>
+            <input type="date" className={`${inputCls} ${errors.date ? 'border-rose-300' : ''}`} {...register('date', { required: 'Data é obrigatória' })} />
+            {errors.date && <span className="text-xs text-rose-500 font-semibold">{errors.date.message}</span>}
+          </div>
+        </div>
       </ModalForm>
 
-      <ConfirmDialog
-        show={showConfirm}
-        onHide={() => setShowConfirm(false)}
-        onConfirm={confirmDelete}
-        title="Excluir Registro"
-        message="Tem certeza que deseja excluir este registro? Esta ação afetará os relatórios."
-      />
+      <ConfirmDialog show={showConfirm} onHide={() => setShowConfirm(false)} onConfirm={confirmDelete} title="Excluir Registro" message="Tem certeza que deseja excluir este registro? Esta ação afetará os relatórios." />
     </div>
   );
 };
