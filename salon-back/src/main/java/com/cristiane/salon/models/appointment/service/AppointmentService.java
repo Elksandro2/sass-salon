@@ -15,6 +15,8 @@ import com.cristiane.salon.models.employee.entity.Employee;
 import com.cristiane.salon.models.employee.repository.EmployeeRepository;
 import com.cristiane.salon.models.service.entity.SalonService;
 import com.cristiane.salon.models.service.repository.SalonServiceRepository;
+import com.cristiane.salon.models.email.service.EmailService;
+import com.cristiane.salon.models.featureflag.service.FeatureFlagService;
 import com.cristiane.salon.models.user.entity.User;
 import com.cristiane.salon.models.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,8 @@ public class AppointmentService {
     private final SalonServiceRepository salonServiceRepository;
     private final UserRepository userRepository;
     private final CashFlowRepository cashFlowRepository;
+    private final FeatureFlagService featureFlagService;
+    private final EmailService emailService;
 
     private static int blockingMinutes(SalonService service) {
         if (service.getDurationMin() != null && service.getDurationMin() > 0) {
@@ -86,6 +90,10 @@ public class AppointmentService {
         User currentUser = getAuthenticatedUser();
         boolean staffCreatesForClient = isStaff(currentUser) && request.clientId() != null;
 
+        if (!staffCreatesForClient && !featureFlagService.isEnabled("CLIENT_BOOKING")) {
+            throw new BadRequestException("Agendamentos online para clientes estão temporariamente desativados.");
+        }
+
         User client;
         if (staffCreatesForClient) {
             client = userRepository.findById(request.clientId())
@@ -126,7 +134,9 @@ public class AppointmentService {
             appointment.setClientNotes(request.clientNotes());
             appointment.setStatus(AppointmentStatus.CONFIRMED);
 
-            return AppointmentResponse.fromEntity(appointmentRepository.save(appointment));
+            Appointment saved = appointmentRepository.save(appointment);
+            emailService.sendConfirmationNotificationToClient(saved);
+            return AppointmentResponse.fromEntity(saved);
         }
 
         if (request.scheduledAt() != null) {
@@ -150,7 +160,9 @@ public class AppointmentService {
         appointment.setClientNotes(notes);
         appointment.setStatus(AppointmentStatus.REQUESTED);
 
-        return AppointmentResponse.fromEntity(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+        emailService.sendRequestNotificationToStaff(saved);
+        return AppointmentResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -175,7 +187,9 @@ public class AppointmentService {
         appointment.setScheduledAt(scheduledAt);
         appointment.setStatus(AppointmentStatus.CONFIRMED);
 
-        return AppointmentResponse.fromEntity(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+        emailService.sendConfirmationNotificationToClient(saved);
+        return AppointmentResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -235,7 +249,9 @@ public class AppointmentService {
         }
 
         appointment.setStatus(AppointmentStatus.CANCELLED);
-        return AppointmentResponse.fromEntity(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+        emailService.sendCancellationNotification(saved);
+        return AppointmentResponse.fromEntity(saved);
     }
 
     @Transactional

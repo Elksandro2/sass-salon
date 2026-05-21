@@ -6,6 +6,16 @@ spring:
   output:
     ansi:
       enabled: always
+  mail:
+    host: localhost
+    port: 2525
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
 
 logging:
   level:

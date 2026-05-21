@@ -26,7 +26,7 @@ class SalonServiceControllerTest {
     private MockMvc mvc;
 
     @Autowired
-    private SalonServiceManager salonServiceService;
+    private SalonServiceManager salonServiceManager;
 
     @Autowired
     private com.cristiane.salon.security.VerifyUserPermissions verifyUserPermissions;
@@ -35,7 +35,7 @@ class SalonServiceControllerTest {
     @WithMockUser
     void createReturns201_whenValid() throws Exception {
         when(verifyUserPermissions.userOwnResourceOrHasPermission(null)).thenReturn(true);
-        when(salonServiceService.create(any())).thenReturn(null);
+        when(salonServiceManager.create(any())).thenReturn(null);
 
         String body = "{\"name\":\"cut\",\"durationMin\":30}";
 
@@ -59,7 +59,7 @@ class SalonServiceControllerTest {
     @TestConfiguration
     static class TestConfig {
         @Bean
-        public SalonServiceManager salonServiceService() {
+        public SalonServiceManager salonServiceManager() {
             return Mockito.mock(SalonServiceManager.class);
         }
 
