@@ -9,6 +9,8 @@ import com.cristiane.salon.models.user.entity.Role;
 import com.cristiane.salon.models.user.entity.User;
 import com.cristiane.salon.models.user.repository.RoleRepository;
 import com.cristiane.salon.models.user.repository.UserRepository;
+import com.cristiane.salon.models.employee.entity.Employee;
+import com.cristiane.salon.models.employee.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeRepository employeeRepository;
 
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
@@ -39,7 +42,8 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
-    @Transactional    public UserResponse create(UserCreateRequest request) {
+    @Transactional
+    public UserResponse create(UserCreateRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
             throw new BadRequestException("Email já está em uso");
         }
@@ -60,10 +64,20 @@ public class UserService {
             user.setActive(true);
         }
 
-        return UserResponse.fromEntity(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+
+        if ("FUNCIONARIA".equals(savedUser.getRoleName())) {
+            Employee employee = new Employee();
+            employee.setUser(savedUser);
+            employee.setBio("Profissional especialista");
+            employeeRepository.save(employee);
+        }
+
+        return UserResponse.fromEntity(savedUser);
     }
 
-    @Transactional    public UserResponse update(Long id, UserUpdateRequest request) {
+    @Transactional
+    public UserResponse update(Long id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
@@ -87,7 +101,18 @@ public class UserService {
             user.setRole(role);
         }
 
-        return UserResponse.fromEntity(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+
+        if ("FUNCIONARIA".equals(savedUser.getRoleName())) {
+            if (employeeRepository.findByUserId(savedUser.getId()).isEmpty()) {
+                Employee employee = new Employee();
+                employee.setUser(savedUser);
+                employee.setBio("Profissional especialista");
+                employeeRepository.save(employee);
+            }
+        }
+
+        return UserResponse.fromEntity(savedUser);
     }
 
     @Transactional

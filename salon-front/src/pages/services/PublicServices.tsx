@@ -3,7 +3,7 @@ import { salonServicesApi, displayServiceDuration } from './services/services';
 import type { SalonServiceData } from './services/services';
 import { useAlert } from '../../hooks/useAlert';
 import { getApiErrorMessage } from '../../utils/apiError';
-import { Clock } from 'lucide-react';
+import { Clock, Scissors } from 'lucide-react';
 
 export const PublicServices = () => {
   const [services, setServices] = useState<SalonServiceData[]>([]);
@@ -33,7 +33,7 @@ export const PublicServices = () => {
           Nosso Menu de Serviços
         </h2>
         <p className="text-sm text-[#3b3036]/60">
-          Realce sua beleza com a nossa seleção exclusiva de tratamentos.
+          Realce sua beleza com a nossa selection exclusiva de tratamentos.
         </p>
       </div>
 
@@ -42,12 +42,20 @@ export const PublicServices = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#be8a83]"></div>
           <span className="text-sm text-[#3b3036]/60 font-medium">Carregando serviços...</span>
         </div>
+      ) : services.length === 0 ? (
+        <div className="max-w-md mx-auto text-center py-16 px-6 bg-white rounded-2xl border border-dashed border-[#eae1e1] shadow-xs">
+          <Scissors size={48} className="mx-auto text-[#be8a83]/50 mb-4 animate-pulse" />
+          <h3 className="font-heading text-lg font-bold text-[#3b3036] mb-2">Nenhum serviço disponível</h3>
+          <p className="text-sm text-[#3b3036]/60 leading-relaxed">
+            No momento, não temos serviços cadastrados ou ativos no nosso menu. Por favor, volte mais tarde ou entre em contato conosco.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
             <div 
               key={service.id} 
-              className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1.5 before:bg-gradient-to-r before:from-[#be8a83] before:to-[#e5a49c] before:opacity-0 hover:before:opacity-100 before:transition-opacity"
+              className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col justify-between shadow-xs relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-1 before:bg-gradient-to-r before:from-[#be8a83] before:to-[#e5a49c]"
             >
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">

@@ -172,7 +172,7 @@ export const MyAppointments = () => {
           {appointments.map(apt => (
             <div 
               key={apt.id} 
-              className={`bg-white rounded-2xl border border-gray-100 border-l-4 ${getCardBorderColor(apt.status)} flex overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
+              className={`bg-white rounded-2xl border border-gray-100 border-l-4 ${getCardBorderColor(apt.status)} flex overflow-hidden shadow-xs transition-all duration-300`}
             >
               {/* Date Column */}
               <div className="bg-gray-50/70 px-4 py-5 flex flex-col justify-center items-center min-w-[110px] border-r border-dashed border-gray-100 text-center space-y-1">

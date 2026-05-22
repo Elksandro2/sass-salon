@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, User as UserIcon, Calendar, CheckCircle, ArrowLeft, ArrowRight, MessageSquare, CalendarHeart, AlertCircle } from 'lucide-react';
+import { Clock, User as UserIcon, Calendar, CheckCircle, ArrowLeft, ArrowRight, MessageSquare, CalendarHeart, AlertCircle, Scissors } from 'lucide-react';
 import { salonServicesApi, displayServiceDuration } from '../services/services/services';
 import type { SalonServiceData } from '../services/services/services';
 import { employeesApi } from '../admin/employees/services/employees';
@@ -172,6 +172,23 @@ export const PublicAppointment = () => {
         </p>
       </div>
 
+      {!isAuthenticated && (
+        <div className="p-4 bg-amber-50/80 backdrop-blur-md border border-amber-200 rounded-2xl text-amber-800 text-sm flex flex-col sm:flex-row items-center gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5 flex-1">
+            <AlertCircle size={20} className="shrink-0 text-amber-600" />
+            <span>
+              <span className="font-bold">Atenção:</span> Você não está conectado. Você pode montar sua solicitação, mas precisará fazer login ou criar uma conta para finalizar.
+            </span>
+          </div>
+          <button 
+            onClick={() => navigate('/login')}
+            className="w-full sm:w-auto px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-full transition-all shrink-0 cursor-pointer"
+          >
+            Entrar / Cadastrar
+          </button>
+        </div>
+      )}
+
       {/* Stepper */}
       <div className="relative flex justify-between">
         <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0" />
@@ -206,38 +223,48 @@ export const PublicAppointment = () => {
         {step === 1 && (
           <div className="space-y-4">
             <h4 className="font-heading text-lg font-bold text-center text-[#3b3036]">O que vamos fazer?</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {services.map(srv => {
-                const tag = priceTagLabel(srv.price);
-                return (
-                  <div
-                    key={srv.id}
-                    onClick={() => setSelectedService(srv.id!)}
-                    className={`relative cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 ${
-                      selectedService === srv.id
-                        ? 'border-[#be8a83] bg-[#be8a83]/5 shadow-md shadow-[#be8a83]/10'
-                        : 'border-gray-100 bg-white hover:border-[#be8a83]/50 hover:-translate-y-0.5 hover:shadow-sm'
-                    }`}
-                  >
-                    {tag && (
-                      <span className="inline-flex mb-2 px-2.5 py-1 bg-[#be8a83] text-white text-xs font-bold rounded-full">
-                        {tag}
-                      </span>
-                    )}
-                    <h5 className="font-bold text-[#3b3036] mb-1">{srv.name}</h5>
-                    <p className="text-xs text-[#3b3036]/60 mb-3 leading-relaxed">
-                      {srv.description || 'Tratamento especializado para você.'}
-                    </p>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                      <Clock size={14} /> {displayServiceDuration(srv)}
+            {services.length === 0 ? (
+              <div className="text-center py-12 px-4 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 max-w-md mx-auto">
+                <Scissors size={36} className="mx-auto text-gray-300 mb-3" />
+                <h5 className="font-bold text-[#3b3036] text-base mb-1">Nenhum serviço disponível</h5>
+                <p className="text-xs text-[#3b3036]/60 leading-relaxed">
+                  Não existem serviços ativos cadastrados para agendamento no momento. Por favor, tente novamente mais tarde.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {services.map(srv => {
+                  const tag = priceTagLabel(srv.price);
+                  return (
+                    <div
+                      key={srv.id}
+                      onClick={() => setSelectedService(srv.id!)}
+                      className={`relative cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 ${
+                        selectedService === srv.id
+                          ? 'border-[#be8a83] bg-[#be8a83]/5 shadow-md shadow-[#be8a83]/10'
+                          : 'border-gray-100 bg-white hover:border-[#be8a83]/50 hover:-translate-y-0.5 hover:shadow-sm'
+                      }`}
+                    >
+                      {tag && (
+                        <span className="inline-flex mb-2 px-2.5 py-1 bg-[#be8a83] text-white text-xs font-bold rounded-full">
+                          {tag}
+                        </span>
+                      )}
+                      <h5 className="font-bold text-[#3b3036] mb-1">{srv.name}</h5>
+                      <p className="text-xs text-[#3b3036]/60 mb-3 leading-relaxed">
+                        {srv.description || 'Tratamento especializado para você.'}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <Clock size={14} /> {displayServiceDuration(srv)}
+                      </div>
+                      {selectedService === srv.id && (
+                        <CheckCircle size={20} className="absolute top-3 right-3 text-[#be8a83]" />
+                      )}
                     </div>
-                    {selectedService === srv.id && (
-                      <CheckCircle size={20} className="absolute top-3 right-3 text-[#be8a83]" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -245,30 +272,40 @@ export const PublicAppointment = () => {
         {step === 2 && (
           <div className="space-y-4">
             <h4 className="font-heading text-lg font-bold text-center text-[#3b3036]">Com quem você prefere?</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {employees.map(emp => (
-                <div
-                  key={emp.id}
-                  onClick={() => setSelectedEmployee(emp.id!)}
-                  className={`relative cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 flex items-center gap-4 ${
-                    selectedEmployee === emp.id
-                      ? 'border-[#be8a83] bg-[#be8a83]/5 shadow-md shadow-[#be8a83]/10'
-                      : 'border-gray-100 bg-white hover:border-[#be8a83]/50 hover:-translate-y-0.5 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#be8a83] to-[#3b3036] text-white flex items-center justify-center font-bold text-xl shrink-0">
-                    {(emp.name ?? 'P').charAt(0)}
+            {employees.length === 0 ? (
+              <div className="text-center py-12 px-4 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 max-w-md mx-auto">
+                <UserIcon size={36} className="mx-auto text-gray-300 mb-3" />
+                <h5 className="font-bold text-[#3b3036] text-base mb-1">Nenhum profissional disponível</h5>
+                <p className="text-xs text-[#3b3036]/60 leading-relaxed">
+                  Não há profissionais cadastrados ou disponíveis para agendamento online neste momento. Por favor, tente novamente mais tarde.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {employees.map(emp => (
+                  <div
+                    key={emp.id}
+                    onClick={() => setSelectedEmployee(emp.id!)}
+                    className={`relative cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 flex items-center gap-4 ${
+                      selectedEmployee === emp.id
+                        ? 'border-[#be8a83] bg-[#be8a83]/5 shadow-md shadow-[#be8a83]/10'
+                        : 'border-gray-100 bg-white hover:border-[#be8a83]/50 hover:-translate-y-0.5 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#be8a83] to-[#3b3036] text-white flex items-center justify-center font-bold text-xl shrink-0">
+                      {(emp.name ?? 'P').charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-bold text-[#3b3036] mb-0.5">{emp.name}</h5>
+                      <p className="text-xs text-[#3b3036]/60 leading-snug">{emp.bio || 'Profissional especialista'}</p>
+                    </div>
+                    {selectedEmployee === emp.id && (
+                      <CheckCircle size={20} className="shrink-0 text-[#be8a83]" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="font-bold text-[#3b3036] mb-0.5">{emp.name}</h5>
-                    <p className="text-xs text-[#3b3036]/60 leading-snug">{emp.bio || 'Profissional especialista'}</p>
-                  </div>
-                  {selectedEmployee === emp.id && (
-                    <CheckCircle size={20} className="shrink-0 text-[#be8a83]" />
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

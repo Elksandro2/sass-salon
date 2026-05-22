@@ -12,7 +12,9 @@ import {
   Calendar, 
   DollarSign, 
   FileBarChart, 
-  LogOut
+  LogOut,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export const AdminLayout = () => {
@@ -89,14 +91,21 @@ export const AdminLayout = () => {
           showSidebar ? 'translate-x-0' : '-translate-x-full'
         } ${isCollapsed ? 'md:w-20' : 'md:w-[260px]'}`}
       >
-        <div className="flex justify-between items-center px-6 py-5 border-b border-[#eae1e1]/50 h-[73px] bg-white/50">
-          {!isCollapsed ? (
-            <h4 className="font-heading font-bold text-xl tracking-wide text-[#3b3036] transition-all duration-300">
-              Admin <span className="text-[#be8a83]">Salão</span>
-            </h4>
-          ) : (
-            <div className="mx-auto text-xl font-bold text-[#be8a83] transition-all duration-300">AS</div>
-          )}
+        <div className={`flex items-center px-4 py-5 border-b border-[#eae1e1]/50 h-[73px] bg-white/50 gap-2 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleCollapse}
+              className="hidden md:flex p-1.5 hover:bg-[#be8a83]/10 text-[#3b3036] rounded-full transition-all duration-200 cursor-pointer"
+              aria-label="Toggle sidebar"
+            >
+              {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+            {!isCollapsed && (
+              <h4 className="font-heading font-bold text-lg tracking-wide text-[#3b3036] transition-all duration-300 whitespace-nowrap">
+                Admin <span className="text-[#be8a83]">Salão</span>
+              </h4>
+            )}
+          </div>
           <button 
             className="md:hidden text-[#3b3036]/60 hover:text-[#3b3036] focus:outline-none" 
             onClick={closeSidebar}
@@ -137,15 +146,15 @@ export const AdminLayout = () => {
 
           <button
             onClick={() => { logout(); closeSidebar(); }}
-            className={`w-[calc(100%-16px)] flex items-center rounded-full text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 text-sm font-semibold mt-8 text-left relative ${
+            className={`w-[calc(100%-16px)] flex items-center rounded-full transition-all duration-200 text-sm font-bold mt-8 text-left relative ${
               isCollapsed ? 'justify-center p-3 mx-1' : 'gap-3 px-5 py-3 mx-2'
-            }`}
+            } text-[#3b3036]/75 hover:text-white bg-[#3b3036]/5 hover:bg-[#be8a83] border border-[#3b3036]/10 hover:border-[#be8a83] shadow-xs hover:shadow-md`}
           >
-            <LogOut size={18} className="text-red-500" />
+            <LogOut size={18} className="text-[#3b3036]/60 group-hover:text-white transition-colors" />
             {!isCollapsed && <span>Sair</span>}
             
             {isCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
+              <div className="absolute left-full ml-4 px-3 py-1.5 bg-[#3b3036] text-white text-xs font-semibold rounded-lg shadow-lg border border-[#eae1e1]/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
                 Sair
               </div>
             )}
@@ -158,13 +167,6 @@ export const AdminLayout = () => {
         {/* Desktop Header */}
         <header className="hidden md:flex justify-between items-center px-8 py-4 bg-white/70 backdrop-blur-md border-b border-[#eae1e1]/50 z-30 h-[73px]">
           <div className="flex items-center gap-4">
-            <button
-              onClick={toggleCollapse}
-              className="p-2 hover:bg-[#be8a83]/10 text-[#3b3036] rounded-full transition-all duration-200 cursor-pointer"
-              aria-label="Toggle sidebar"
-            >
-              <Menu size={20} />
-            </button>
             <span className="text-xs font-semibold bg-[#be8a83]/10 text-[#be8a83] px-2.5 py-1 rounded-full uppercase tracking-wider">
               {user?.role === 'ADMIN' ? 'Administrador' : 'Gerente'}
             </span>
