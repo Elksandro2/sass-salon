@@ -6,6 +6,8 @@ import com.cristiane.salon.models.employee.dto.EmployeeBookingResponse;
 import com.cristiane.salon.models.employee.dto.EmployeeRequest;
 import com.cristiane.salon.models.employee.dto.EmployeeResponse;
 import com.cristiane.salon.models.employee.entity.Employee;
+import com.cristiane.salon.models.employee.entity.RemunerationType;
+import com.cristiane.salon.models.employee.entity.CommissionScope;
 import com.cristiane.salon.models.employee.repository.EmployeeRepository;
 import com.cristiane.salon.models.user.entity.User;
 import com.cristiane.salon.models.user.repository.UserRepository;
@@ -92,9 +94,10 @@ public class EmployeeService {
         if (request.remunerationType() != null) {
             employee.setRemunerationType(request.remunerationType());
             
-            if (request.remunerationType() == com.cristiane.salon.models.employee.entity.RemunerationType.COMISSIONADO) {
+            if (request.remunerationType() == RemunerationType.COMISSIONADO 
+                    || request.remunerationType() == RemunerationType.FIXO_E_COMISSIONADO) {
                 if (request.commissionScope() == null) {
-                    throw new BadRequestException("O escopo da comissão é obrigatório para funcionários comissionados");
+                    throw new BadRequestException("O escopo da comissão é obrigatório para funcionários comissionados ou mistos");
                 }
                 employee.setCommissionScope(request.commissionScope());
             } else {
@@ -105,7 +108,7 @@ public class EmployeeService {
                 if (request.remunerationValue().compareTo(java.math.BigDecimal.ZERO) < 0) {
                     throw new BadRequestException("O valor de remuneração não pode ser negativo");
                 }
-                if (request.remunerationType() == com.cristiane.salon.models.employee.entity.RemunerationType.COMISSIONADO 
+                if (request.remunerationType() == RemunerationType.COMISSIONADO 
                         && request.remunerationValue().compareTo(new java.math.BigDecimal("100")) > 0) {
                     throw new BadRequestException("A porcentagem de comissão não pode exceder 100%");
                 }
@@ -113,10 +116,27 @@ public class EmployeeService {
             } else {
                 employee.setRemunerationValue(java.math.BigDecimal.ZERO);
             }
+
+            if (request.remunerationType() == RemunerationType.FIXO_E_COMISSIONADO) {
+                if (request.commissionValue() != null) {
+                    if (request.commissionValue().compareTo(java.math.BigDecimal.ZERO) < 0) {
+                        throw new BadRequestException("O valor da comissão não pode ser negativo");
+                    }
+                    if (request.commissionValue().compareTo(new java.math.BigDecimal("100")) > 0) {
+                        throw new BadRequestException("A porcentagem de comissão não pode exceder 100%");
+                    }
+                    employee.setCommissionValue(request.commissionValue());
+                } else {
+                    employee.setCommissionValue(java.math.BigDecimal.ZERO);
+                }
+            } else {
+                employee.setCommissionValue(null);
+            }
         } else {
             employee.setRemunerationType(null);
             employee.setCommissionScope(null);
             employee.setRemunerationValue(null);
+            employee.setCommissionValue(null);
         }
     }
 

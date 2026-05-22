@@ -90,6 +90,18 @@ public class ReportService {
                     payout = globalDoneAppointmentsValue.multiply(pct).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
                 }
                 totalCommissionPaid = totalCommissionPaid.add(payout);
+            } else if (employee.getRemunerationType() == RemunerationType.FIXO_E_COMISSIONADO) {
+                BigDecimal salary = employee.getRemunerationValue() != null ? employee.getRemunerationValue() : BigDecimal.ZERO;
+                BigDecimal pct = employee.getCommissionValue() != null ? employee.getCommissionValue() : BigDecimal.ZERO;
+                BigDecimal commissionPart = BigDecimal.ZERO;
+                if (employee.getCommissionScope() == CommissionScope.INDIVIDUAL) {
+                    commissionPart = empDoneValue.multiply(pct).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                } else if (employee.getCommissionScope() == CommissionScope.GLOBAL) {
+                    commissionPart = globalDoneAppointmentsValue.multiply(pct).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                }
+                totalSalaryPaid = totalSalaryPaid.add(salary);
+                totalCommissionPaid = totalCommissionPaid.add(commissionPart);
+                payout = salary.add(commissionPart);
             }
 
             employeeFinanceDetails.add(new EmployeeFinanceResponse(
@@ -98,6 +110,7 @@ public class ReportService {
                     employee.getRemunerationType() != null ? employee.getRemunerationType().name() : null,
                     employee.getRemunerationValue(),
                     employee.getCommissionScope() != null ? employee.getCommissionScope().name() : null,
+                    employee.getCommissionValue(),
                     doneCount,
                     empDoneValue,
                     payout

@@ -36,4 +36,7 @@ public class Employee {
 
     @Column(name = "remuneration_value", precision = 10, scale = 2)
     private java.math.BigDecimal remunerationValue;
+
+    @Column(name = "commission_value", precision = 10, scale = 2)
+    private java.math.BigDecimal commissionValue;
 }

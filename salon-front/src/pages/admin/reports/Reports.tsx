@@ -58,11 +58,11 @@ export const Reports = () => {
       startY: 50,
       head: [['Receitas', 'Despesas Gerais', 'Gastos Salários', 'Gastos Comissões', 'Lucro Líquido']],
       body: [[
-        `R$ ${financial?.totalIncome.toFixed(2) || '0.00'}`,
-        `R$ ${financial?.totalExpense.toFixed(2) || '0.00'}`,
-        `R$ ${financial?.totalSalaryPaid.toFixed(2) || '0.00'}`,
-        `R$ ${financial?.totalCommissionPaid.toFixed(2) || '0.00'}`,
-        `R$ ${financial?.netProfit.toFixed(2) || '0.00'}`
+        `R$ ${(financial?.totalIncome ?? 0).toFixed(2)}`,
+        `R$ ${(financial?.totalExpense ?? 0).toFixed(2)}`,
+        `R$ ${(financial?.totalSalaryPaid ?? 0).toFixed(2)}`,
+        `R$ ${(financial?.totalCommissionPaid ?? 0).toFixed(2)}`,
+        `R$ ${(financial?.netProfit ?? 0).toFixed(2)}`
       ]],
     });
     
@@ -73,13 +73,20 @@ export const Reports = () => {
       doc.text('Detalhamento de Remunerações por Funcionária', 14, currentY + 15);
       
       const employeeRows = financial.employeeFinanceDetails.map(emp => {
-        const typeStr = emp.remunerationType === 'SALARIO_FIXO' ? 'Salário Fixo' : emp.remunerationType === 'COMISSIONADO' ? 'Comissionado' : 'Não definido';
+        let typeStr = 'Não definido';
         let baseStr = 'R$ 0.00';
+        
         if (emp.remunerationType === 'SALARIO_FIXO') {
-          baseStr = `R$ ${emp.remunerationValue?.toFixed(2) || '0.00'}`;
+          typeStr = 'Salário Fixo';
+          baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)}`;
         } else if (emp.remunerationType === 'COMISSIONADO') {
+          typeStr = 'Comissionado';
           const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
-          baseStr = `${emp.remunerationValue || 0}% (${scopeStr})`;
+          baseStr = `${emp.remunerationValue ?? 0}% (${scopeStr})`;
+        } else if (emp.remunerationType === 'FIXO_E_COMISSIONADO') {
+          typeStr = 'Fixo + Comissionado';
+          const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+          baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)} + ${(emp.commissionValue ?? 0).toFixed(0)}% (${scopeStr})`;
         }
         
         return [
@@ -87,8 +94,8 @@ export const Reports = () => {
           typeStr,
           baseStr,
           emp.doneAppointmentsCount.toString(),
-          `R$ ${emp.doneAppointmentsValue.toFixed(2)}`,
-          `R$ ${emp.calculatedPayout.toFixed(2)}`
+          `R$ ${(emp.doneAppointmentsValue ?? 0).toFixed(2)}`,
+          `R$ ${(emp.calculatedPayout ?? 0).toFixed(2)}`
         ];
       });
       
@@ -180,28 +187,28 @@ export const Reports = () => {
               <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
                 <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Total Receitas</p>
-                <p className="text-xl font-extrabold text-emerald-600">R$ {financial?.totalIncome.toFixed(2)}</p>
+                <p className="text-xl font-extrabold text-emerald-600">R$ ${(financial?.totalIncome ?? 0).toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-rose-500" />
                 <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Despesas Gerais</p>
-                <p className="text-xl font-extrabold text-rose-600">R$ {financial?.totalExpense.toFixed(2)}</p>
+                <p className="text-xl font-extrabold text-rose-600">R$ {(financial?.totalExpense ?? 0).toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-indigo-500" />
                 <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Salários Fixos</p>
-                <p className="text-xl font-extrabold text-indigo-600">R$ {financial?.totalSalaryPaid.toFixed(2)}</p>
+                <p className="text-xl font-extrabold text-indigo-600">R$ {(financial?.totalSalaryPaid ?? 0).toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-500" />
                 <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Comissões</p>
-                <p className="text-xl font-extrabold text-amber-600">R$ {financial?.totalCommissionPaid.toFixed(2)}</p>
+                <p className="text-xl font-extrabold text-amber-600">R$ {(financial?.totalCommissionPaid ?? 0).toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#be8a83] to-[#e5a49c]" />
                 <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Lucro Líquido</p>
-                <p className={`text-xl font-extrabold ${financial?.netProfit! >= 0 ? 'text-[#be8a83]' : 'text-rose-600'}`}>
-                  R$ {financial?.netProfit.toFixed(2)}
+                <p className={`text-xl font-extrabold ${(financial?.netProfit ?? 0) >= 0 ? 'text-[#be8a83]' : 'text-rose-600'}`}>
+                  R$ {(financial?.netProfit ?? 0).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -228,13 +235,20 @@ export const Reports = () => {
                     </thead>
                     <tbody className="divide-y divide-[#eae1e1]/40">
                       {financial.employeeFinanceDetails.map((emp) => {
-                        const typeStr = emp.remunerationType === 'SALARIO_FIXO' ? 'Salário Fixo' : emp.remunerationType === 'COMISSIONADO' ? 'Comissionado' : 'Não definido';
+                        let typeStr = 'Não definido';
                         let baseStr = 'R$ 0,00';
+                        
                         if (emp.remunerationType === 'SALARIO_FIXO') {
-                          baseStr = `R$ ${emp.remunerationValue?.toFixed(2) || '0,00'}`;
+                          typeStr = 'Salário Fixo';
+                          baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)}`;
                         } else if (emp.remunerationType === 'COMISSIONADO') {
+                          typeStr = 'Comissionado';
                           const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
-                          baseStr = `${emp.remunerationValue || 0}% (${scopeStr})`;
+                          baseStr = `${emp.remunerationValue ?? 0}% (${scopeStr})`;
+                        } else if (emp.remunerationType === 'FIXO_E_COMISSIONADO') {
+                          typeStr = 'Fixo + Comissionado';
+                          const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+                          baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)} + ${(emp.commissionValue ?? 0).toFixed(0)}% (${scopeStr})`;
                         }
 
                         return (
@@ -243,8 +257,8 @@ export const Reports = () => {
                             <td className="px-6 py-4 text-sm text-[#7a7074]">{typeStr}</td>
                             <td className="px-6 py-4 text-sm text-[#7a7074]">{baseStr}</td>
                             <td className="px-6 py-4 text-sm text-[#7a7074] text-center">{emp.doneAppointmentsCount}</td>
-                            <td className="px-6 py-4 text-sm text-[#7a7074] text-right">R$ {emp.doneAppointmentsValue.toFixed(2)}</td>
-                            <td className="px-6 py-4 text-sm font-bold text-[#be8a83] text-right">R$ {emp.calculatedPayout.toFixed(2)}</td>
+                            <td className="px-6 py-4 text-sm text-[#7a7074] text-right">R$ ${(emp.doneAppointmentsValue ?? 0).toFixed(2)}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-[#be8a83] text-right">R$ ${(emp.calculatedPayout ?? 0).toFixed(2)}</td>
                           </tr>
                         );
                       })}
@@ -266,7 +280,7 @@ export const Reports = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                       <XAxis dataKey="Data" tick={{ fontSize: 12 }} />
                       <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip formatter={(val: any) => `R$ ${Number(val).toFixed(2)}`} />
+                      <Tooltip formatter={(val: any) => `R$ ${Number(val ?? 0).toFixed(2)}`} />
                       <Legend />
                       <Line type="monotone" dataKey="Receita" stroke="#be8a83" strokeWidth={2} activeDot={{ r: 8 }} />
                     </LineChart>

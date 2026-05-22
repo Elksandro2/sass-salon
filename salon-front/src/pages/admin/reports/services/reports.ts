@@ -3,9 +3,10 @@ import api from '../../../../services/api';
 export interface EmployeeFinanceResponse {
   employeeId: number;
   employeeName: string;
-  remunerationType?: 'SALARIO_FIXO' | 'COMISSIONADO';
+  remunerationType?: 'SALARIO_FIXO' | 'COMISSIONADO' | 'FIXO_E_COMISSIONADO';
   remunerationValue?: number;
   commissionScope?: 'INDIVIDUAL' | 'GLOBAL';
+  commissionValue?: number;
   doneAppointmentsCount: number;
   doneAppointmentsValue: number;
   calculatedPayout: number;

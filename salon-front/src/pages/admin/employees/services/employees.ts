@@ -6,9 +6,10 @@ export interface EmployeeData {
   name?: string;
   email?: string;
   bio?: string;
-  remunerationType?: 'SALARIO_FIXO' | 'COMISSIONADO';
+  remunerationType?: 'SALARIO_FIXO' | 'COMISSIONADO' | 'FIXO_E_COMISSIONADO';
   commissionScope?: 'INDIVIDUAL' | 'GLOBAL';
   remunerationValue?: number;
+  commissionValue?: number;
 }
 
 export const employeesApi = {

@@ -12,6 +12,7 @@ import com.cristiane.salon.models.employee.entity.CommissionScope;
 import com.cristiane.salon.models.employee.repository.EmployeeRepository;
 import com.cristiane.salon.models.report.dto.AppointmentReportResponse;
 import com.cristiane.salon.models.report.dto.FinancialReportResponse;
+import com.cristiane.salon.models.report.dto.EmployeeFinanceResponse;
 import com.cristiane.salon.models.service.entity.SalonService;
 import com.cristiane.salon.models.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,6 +152,56 @@ class ReportServiceTest {
         assertEquals(new BigDecimal("400.00"), report.totalSalaryPaid());
         assertEquals(new BigDecimal("40.00"), report.totalCommissionPaid());
         assertEquals(new BigDecimal("560.00"), report.netProfit());
+    }
+
+    @Test
+    void shouldGenerateFinancialReportWithHybridRemunerationCorrectly() {
+        // Given
+        CashFlow income = new CashFlow();
+        income.setType(CashFlowType.INCOME);
+        income.setAmount(new BigDecimal("1000.00"));
+
+        when(cashFlowRepository.findByDateBetween(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(income));
+
+        // Create Hybrid Employee
+        User user = new User();
+        user.setName("Dave");
+        Employee emp = new Employee();
+        emp.setId(4L);
+        emp.setUser(user);
+        emp.setRemunerationType(RemunerationType.FIXO_E_COMISSIONADO);
+        emp.setRemunerationValue(new BigDecimal("400.00")); // Base salary
+        emp.setCommissionValue(new BigDecimal("10.00")); // 10%
+        emp.setCommissionScope(CommissionScope.INDIVIDUAL);
+
+        when(employeeRepository.findAll()).thenReturn(List.of(emp));
+
+        // Create Appointment
+        SalonService service = new SalonService();
+        service.setPrice(new BigDecimal("200.00"));
+
+        Appointment apt = new Appointment();
+        apt.setStatus(AppointmentStatus.DONE);
+        apt.setEmployee(emp);
+        apt.setSalonService(service);
+        apt.setScheduledAt(LocalDateTime.now());
+
+        when(appointmentRepository.findAll()).thenReturn(List.of(apt));
+
+        // When
+        FinancialReportResponse report = reportService.generateFinancialReport(LocalDate.now(), LocalDate.now());
+
+        // Then
+        assertEquals(new BigDecimal("1000.00"), report.totalIncome());
+        assertEquals(new BigDecimal("400.00"), report.totalSalaryPaid());
+        assertEquals(new BigDecimal("20.00"), report.totalCommissionPaid());
+        assertEquals(new BigDecimal("580.00"), report.netProfit());
+        
+        EmployeeFinanceResponse detail = report.employeeFinanceDetails().get(0);
+        assertEquals(new BigDecimal("400.00"), detail.remunerationValue());
+        assertEquals(new BigDecimal("10.00"), detail.commissionValue());
+        assertEquals(new BigDecimal("420.00"), detail.calculatedPayout());
     }
 
     @Test

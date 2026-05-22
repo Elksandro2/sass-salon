@@ -15,5 +15,7 @@ public record EmployeeRequest(
 
         CommissionScope commissionScope,
 
-        BigDecimal remunerationValue
+        BigDecimal remunerationValue,
+
+        BigDecimal commissionValue
 ) {}
