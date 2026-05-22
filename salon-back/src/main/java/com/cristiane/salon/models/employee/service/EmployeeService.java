@@ -60,6 +60,7 @@ public class EmployeeService {
         Employee employee = new Employee();
         employee.setUser(user);
         employee.setBio(request.bio());
+        validateAndMapRemuneration(employee, request);
 
         return EmployeeResponse.fromEntity(employeeRepository.save(employee));
     }
@@ -82,7 +83,41 @@ public class EmployeeService {
             employee.setBio(request.bio());
         }
 
+        validateAndMapRemuneration(employee, request);
+
         return EmployeeResponse.fromEntity(employeeRepository.save(employee));
+    }
+
+    private void validateAndMapRemuneration(Employee employee, EmployeeRequest request) {
+        if (request.remunerationType() != null) {
+            employee.setRemunerationType(request.remunerationType());
+            
+            if (request.remunerationType() == com.cristiane.salon.models.employee.entity.RemunerationType.COMISSIONADO) {
+                if (request.commissionScope() == null) {
+                    throw new BadRequestException("O escopo da comissão é obrigatório para funcionários comissionados");
+                }
+                employee.setCommissionScope(request.commissionScope());
+            } else {
+                employee.setCommissionScope(null);
+            }
+            
+            if (request.remunerationValue() != null) {
+                if (request.remunerationValue().compareTo(java.math.BigDecimal.ZERO) < 0) {
+                    throw new BadRequestException("O valor de remuneração não pode ser negativo");
+                }
+                if (request.remunerationType() == com.cristiane.salon.models.employee.entity.RemunerationType.COMISSIONADO 
+                        && request.remunerationValue().compareTo(new java.math.BigDecimal("100")) > 0) {
+                    throw new BadRequestException("A porcentagem de comissão não pode exceder 100%");
+                }
+                employee.setRemunerationValue(request.remunerationValue());
+            } else {
+                employee.setRemunerationValue(java.math.BigDecimal.ZERO);
+            }
+        } else {
+            employee.setRemunerationType(null);
+            employee.setCommissionScope(null);
+            employee.setRemunerationValue(null);
+        }
     }
 
     @Transactional

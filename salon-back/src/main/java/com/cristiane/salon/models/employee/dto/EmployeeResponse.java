@@ -1,13 +1,19 @@
 package com.cristiane.salon.models.employee.dto;
 
 import com.cristiane.salon.models.employee.entity.Employee;
+import com.cristiane.salon.models.employee.entity.RemunerationType;
+import com.cristiane.salon.models.employee.entity.CommissionScope;
+import java.math.BigDecimal;
 
 public record EmployeeResponse(
         Long id,
         Long userId,
         String name,
         String email,
-        String bio
+        String bio,
+        RemunerationType remunerationType,
+        CommissionScope commissionScope,
+        BigDecimal remunerationValue
 ) {
     public static EmployeeResponse fromEntity(Employee employee) {
         return new EmployeeResponse(
@@ -15,7 +21,10 @@ public record EmployeeResponse(
                 employee.getUser().getId(),
                 employee.getUser().getName(),
                 employee.getUser().getEmail(),
-                employee.getBio()
+                employee.getBio(),
+                employee.getRemunerationType(),
+                employee.getCommissionScope(),
+                employee.getRemunerationValue()
         );
     }
 }

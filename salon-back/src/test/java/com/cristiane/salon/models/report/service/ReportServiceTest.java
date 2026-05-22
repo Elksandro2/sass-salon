@@ -7,6 +7,9 @@ import com.cristiane.salon.models.cashflow.entity.CashFlow;
 import com.cristiane.salon.models.cashflow.enums.CashFlowType;
 import com.cristiane.salon.models.cashflow.repository.CashFlowRepository;
 import com.cristiane.salon.models.employee.entity.Employee;
+import com.cristiane.salon.models.employee.entity.RemunerationType;
+import com.cristiane.salon.models.employee.entity.CommissionScope;
+import com.cristiane.salon.models.employee.repository.EmployeeRepository;
 import com.cristiane.salon.models.report.dto.AppointmentReportResponse;
 import com.cristiane.salon.models.report.dto.FinancialReportResponse;
 import com.cristiane.salon.models.service.entity.SalonService;
@@ -36,6 +39,9 @@ class ReportServiceTest {
     @Mock
     private AppointmentRepository appointmentRepository;
 
+    @Mock
+    private EmployeeRepository employeeRepository;
+
     @InjectMocks
     private ReportService reportService;
 
@@ -60,6 +66,7 @@ class ReportServiceTest {
 
         when(cashFlowRepository.findByDateBetween(any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(List.of(income1, income2, expense1));
+        when(employeeRepository.findAll()).thenReturn(List.of());
 
         // When
         FinancialReportResponse report = reportService.generateFinancialReport(LocalDate.now(), LocalDate.now());
@@ -68,6 +75,82 @@ class ReportServiceTest {
         assertEquals(new BigDecimal("150.00"), report.totalIncome());
         assertEquals(new BigDecimal("30.00"), report.totalExpense());
         assertEquals(new BigDecimal("120.00"), report.netProfit());
+        assertEquals(BigDecimal.ZERO, report.totalSalaryPaid());
+        assertEquals(BigDecimal.ZERO, report.totalCommissionPaid());
+    }
+
+    @Test
+    void shouldGenerateFinancialReportWithRemunerationsCorrectly() {
+        // Given
+        CashFlow income = new CashFlow();
+        income.setType(CashFlowType.INCOME);
+        income.setAmount(new BigDecimal("1000.00"));
+
+        when(cashFlowRepository.findByDateBetween(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(income));
+
+        // Create Employees
+        User user1 = new User();
+        user1.setName("Alice");
+        Employee emp1 = new Employee();
+        emp1.setId(1L);
+        emp1.setUser(user1);
+        emp1.setRemunerationType(RemunerationType.SALARIO_FIXO);
+        emp1.setRemunerationValue(new BigDecimal("400.00"));
+
+        User user2 = new User();
+        user2.setName("Bob");
+        Employee emp2 = new Employee();
+        emp2.setId(2L);
+        emp2.setUser(user2);
+        emp2.setRemunerationType(RemunerationType.COMISSIONADO);
+        emp2.setCommissionScope(CommissionScope.INDIVIDUAL);
+        emp2.setRemunerationValue(new BigDecimal("10.00")); // 10%
+
+        User user3 = new User();
+        user3.setName("Carol");
+        Employee emp3 = new Employee();
+        emp3.setId(3L);
+        emp3.setUser(user3);
+        emp3.setRemunerationType(RemunerationType.COMISSIONADO);
+        emp3.setCommissionScope(CommissionScope.GLOBAL);
+        emp3.setRemunerationValue(new BigDecimal("5.00")); // 5%
+
+        when(employeeRepository.findAll()).thenReturn(List.of(emp1, emp2, emp3));
+
+        // Create Appointments for period
+        SalonService service = new SalonService();
+        service.setPrice(new BigDecimal("200.00"));
+
+        Appointment aptBob = new Appointment();
+        aptBob.setStatus(AppointmentStatus.DONE);
+        aptBob.setEmployee(emp2);
+        aptBob.setSalonService(service);
+        aptBob.setScheduledAt(LocalDateTime.now());
+
+        Appointment aptAlice = new Appointment();
+        aptAlice.setStatus(AppointmentStatus.DONE);
+        aptAlice.setEmployee(emp1);
+        aptAlice.setSalonService(service);
+        aptAlice.setScheduledAt(LocalDateTime.now());
+
+        when(appointmentRepository.findAll()).thenReturn(List.of(aptBob, aptAlice));
+
+        // When
+        FinancialReportResponse report = reportService.generateFinancialReport(LocalDate.now(), LocalDate.now());
+
+        // Then
+        // total income = 1000
+        // emp1: fixed = 400
+        // emp2: commission (individual, 10% of 200) = 20.00
+        // emp3: commission (global, 5% of all DONE appointments = 5% of 400) = 20.00
+        // totalSalaryPaid = 400.00
+        // totalCommissionPaid = 20.00 (Bob) + 20.00 (Carol) = 40.00
+        // netProfit = 1000 - 0 (expense) - 400 (salary) - 40 (commission) = 560.00
+        assertEquals(new BigDecimal("1000.00"), report.totalIncome());
+        assertEquals(new BigDecimal("400.00"), report.totalSalaryPaid());
+        assertEquals(new BigDecimal("40.00"), report.totalCommissionPaid());
+        assertEquals(new BigDecimal("560.00"), report.netProfit());
     }
 
     @Test

@@ -25,4 +25,15 @@ public class Employee {
 
     @Column(columnDefinition = "TEXT")
     private String bio;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "remuneration_type")
+    private RemunerationType remunerationType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "commission_scope")
+    private CommissionScope commissionScope;
+
+    @Column(name = "remuneration_value", precision = 10, scale = 2)
+    private java.math.BigDecimal remunerationValue;
 }

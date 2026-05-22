@@ -6,8 +6,13 @@ import com.cristiane.salon.models.appointment.repository.AppointmentRepository;
 import com.cristiane.salon.models.cashflow.entity.CashFlow;
 import com.cristiane.salon.models.cashflow.enums.CashFlowType;
 import com.cristiane.salon.models.cashflow.repository.CashFlowRepository;
+import com.cristiane.salon.models.employee.entity.Employee;
+import com.cristiane.salon.models.employee.entity.RemunerationType;
+import com.cristiane.salon.models.employee.entity.CommissionScope;
+import com.cristiane.salon.models.employee.repository.EmployeeRepository;
 import com.cristiane.salon.models.report.dto.AppointmentReportResponse;
 import com.cristiane.salon.models.report.dto.FinancialReportResponse;
+import com.cristiane.salon.models.report.dto.EmployeeFinanceResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +32,7 @@ public class ReportService {
 
     private final CashFlowRepository cashFlowRepository;
     private final AppointmentRepository appointmentRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Transactional(readOnly = true)
     public FinancialReportResponse generateFinancialReport(LocalDate from, LocalDate to) {
@@ -44,10 +51,63 @@ public class ReportService {
                 .map(CashFlow::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal netProfit = income.subtract(expense);
+        final LocalDate finalFrom = from;
+        final LocalDate finalTo = to;
+        List<Appointment> doneAppointments = appointmentRepository.findAll().stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.DONE && isAppointmentInReportPeriod(a, finalFrom, finalTo))
+                .collect(Collectors.toList());
+
+        BigDecimal globalDoneAppointmentsValue = doneAppointments.stream()
+                .map(a -> a.getSalonService().getPrice() != null ? a.getSalonService().getPrice() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<Employee> employees = employeeRepository.findAll();
+        List<EmployeeFinanceResponse> employeeFinanceDetails = new ArrayList<>();
+
+        BigDecimal totalSalaryPaid = BigDecimal.ZERO;
+        BigDecimal totalCommissionPaid = BigDecimal.ZERO;
+
+        for (Employee employee : employees) {
+            List<Appointment> empDoneAppointments = doneAppointments.stream()
+                    .filter(a -> a.getEmployee().getId().equals(employee.getId()))
+                    .collect(Collectors.toList());
+
+            long doneCount = empDoneAppointments.size();
+            BigDecimal empDoneValue = empDoneAppointments.stream()
+                    .map(a -> a.getSalonService().getPrice() != null ? a.getSalonService().getPrice() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal payout = BigDecimal.ZERO;
+
+            if (employee.getRemunerationType() == RemunerationType.SALARIO_FIXO) {
+                payout = employee.getRemunerationValue() != null ? employee.getRemunerationValue() : BigDecimal.ZERO;
+                totalSalaryPaid = totalSalaryPaid.add(payout);
+            } else if (employee.getRemunerationType() == RemunerationType.COMISSIONADO) {
+                BigDecimal pct = employee.getRemunerationValue() != null ? employee.getRemunerationValue() : BigDecimal.ZERO;
+                if (employee.getCommissionScope() == CommissionScope.INDIVIDUAL) {
+                    payout = empDoneValue.multiply(pct).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                } else if (employee.getCommissionScope() == CommissionScope.GLOBAL) {
+                    payout = globalDoneAppointmentsValue.multiply(pct).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                }
+                totalCommissionPaid = totalCommissionPaid.add(payout);
+            }
+
+            employeeFinanceDetails.add(new EmployeeFinanceResponse(
+                    employee.getId(),
+                    employee.getUser().getName(),
+                    employee.getRemunerationType() != null ? employee.getRemunerationType().name() : null,
+                    employee.getRemunerationValue(),
+                    employee.getCommissionScope() != null ? employee.getCommissionScope().name() : null,
+                    doneCount,
+                    empDoneValue,
+                    payout
+            ));
+        }
+
+        BigDecimal netProfit = income.subtract(expense).subtract(totalSalaryPaid).subtract(totalCommissionPaid);
         String period = from + " a " + to;
 
-        return new FinancialReportResponse(income, expense, netProfit, period);
+        return new FinancialReportResponse(income, expense, totalSalaryPaid, totalCommissionPaid, netProfit, employeeFinanceDetails, period);
     }
 
     @Transactional(readOnly = true)

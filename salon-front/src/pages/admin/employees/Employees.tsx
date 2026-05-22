@@ -23,7 +23,8 @@ export const Employees = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [employeeToDelete, setProductToDelete] = useState<number | null>(null);
   
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<EmployeeData>();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<EmployeeData>();
+  const remunerationType = watch('remunerationType');
   const { error: showError } = useAlert();
 
   const loadEmployees = async () => {
@@ -46,7 +47,10 @@ export const Employees = () => {
     if (employee) {
       setEditingEmployee(employee);
       setValue('userId', employee.userId);
-      setValue('bio', employee.bio);
+      setValue('bio', employee.bio || '');
+      setValue('remunerationType', employee.remunerationType);
+      setValue('commissionScope', employee.commissionScope);
+      setValue('remunerationValue', employee.remunerationValue);
     } else {
       setEditingEmployee(null);
     }
@@ -84,6 +88,20 @@ export const Employees = () => {
     { key: 'name', label: 'Nome' },
     { key: 'email', label: 'Email' },
     { key: 'userId', label: 'ID Usuário' },
+    {
+      key: 'remuneration',
+      label: 'Remuneração',
+      render: (item: EmployeeData) => {
+        if (item.remunerationType === 'SALARIO_FIXO') {
+          return `Salário: R$ ${item.remunerationValue?.toFixed(2) || '0.00'}`;
+        }
+        if (item.remunerationType === 'COMISSIONADO') {
+          const scope = item.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+          return `Comissão: ${item.remunerationValue || 0}% (${scope})`;
+        }
+        return 'Não definido';
+      }
+    },
     {
       key: 'actions',
       label: 'Ações',
@@ -154,6 +172,59 @@ export const Employees = () => {
           <div>
             <label className={labelCls}>Biografia / Especialidade</label>
             <textarea rows={3} className={`${inputCls} resize-none`} {...register('bio')} />
+          </div>
+
+          <div className="border-t border-[#eae1e1]/50 pt-4">
+            <h4 className="font-heading font-semibold text-sm text-[#3b3036] mb-3">Modelo de Remuneração</h4>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className={labelCls}>Tipo de Remuneração</label>
+                <select
+                  className={inputCls}
+                  {...register('remunerationType')}
+                >
+                  <option value="">Não definido</option>
+                  <option value="SALARIO_FIXO">Salário Fixo</option>
+                  <option value="COMISSIONADO">Comissionado</option>
+                </select>
+              </div>
+
+              {remunerationType === 'COMISSIONADO' && (
+                <div>
+                  <label className={labelCls}>Escopo da Comissão</label>
+                  <select
+                    className={`${inputCls} ${errors.commissionScope ? 'border-rose-300' : ''}`}
+                    {...register('commissionScope', {
+                      required: remunerationType === 'COMISSIONADO' ? 'O escopo da comissão é obrigatório' : false
+                    })}
+                  >
+                    <option value="">Selecione o escopo...</option>
+                    <option value="INDIVIDUAL">Comissão Individual (sobre serviços executados)</option>
+                    <option value="GLOBAL">Comissão Global (sobre total do salão)</option>
+                  </select>
+                  {errors.commissionScope && <span className="text-xs text-rose-500 font-semibold">{errors.commissionScope.message}</span>}
+                </div>
+              )}
+
+              {remunerationType && (
+                <div>
+                  <label className={labelCls}>
+                    {remunerationType === 'SALARIO_FIXO' ? 'Valor do Salário Fixo (R$)' : 'Porcentagem da Comissão (%)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`${inputCls} ${errors.remunerationValue ? 'border-rose-300' : ''}`}
+                    {...register('remunerationValue', {
+                      required: 'O valor é obrigatório',
+                      min: { value: 0, message: 'O valor não pode ser negativo' },
+                      max: remunerationType === 'COMISSIONADO' ? { value: 100, message: 'A comissão não pode passar de 100%' } : undefined
+                    })}
+                  />
+                  {errors.remunerationValue && <span className="text-xs text-rose-500 font-semibold">{errors.remunerationValue.message}</span>}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </ModalForm>

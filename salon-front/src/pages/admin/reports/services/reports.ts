@@ -1,9 +1,23 @@
 import api from '../../../../services/api';
 
+export interface EmployeeFinanceResponse {
+  employeeId: number;
+  employeeName: string;
+  remunerationType?: 'SALARIO_FIXO' | 'COMISSIONADO';
+  remunerationValue?: number;
+  commissionScope?: 'INDIVIDUAL' | 'GLOBAL';
+  doneAppointmentsCount: number;
+  doneAppointmentsValue: number;
+  calculatedPayout: number;
+}
+
 export interface FinancialReportResponse {
   totalIncome: number;
   totalExpense: number;
+  totalSalaryPaid: number;
+  totalCommissionPaid: number;
   netProfit: number;
+  employeeFinanceDetails: EmployeeFinanceResponse[];
   period: string;
 }
 

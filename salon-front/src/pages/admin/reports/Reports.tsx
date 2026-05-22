@@ -51,21 +51,60 @@ export const Reports = () => {
     doc.text('Relatório Financeiro e Agendamentos', 14, 22);
     doc.setFontSize(11);
     doc.text(`Período: ${financial?.period || 'N/A'}`, 14, 30);
+    
     doc.setFontSize(14);
     doc.text('Resumo Financeiro', 14, 45);
     autoTable(doc, {
       startY: 50,
-      head: [['Receitas', 'Despesas', 'Lucro Líquido']],
+      head: [['Receitas', 'Despesas Gerais', 'Gastos Salários', 'Gastos Comissões', 'Lucro Líquido']],
       body: [[
         `R$ ${financial?.totalIncome.toFixed(2) || '0.00'}`,
         `R$ ${financial?.totalExpense.toFixed(2) || '0.00'}`,
+        `R$ ${financial?.totalSalaryPaid.toFixed(2) || '0.00'}`,
+        `R$ ${financial?.totalCommissionPaid.toFixed(2) || '0.00'}`,
         `R$ ${financial?.netProfit.toFixed(2) || '0.00'}`
       ]],
     });
-    const finalY = (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || 50;
-    doc.text('Resumo de Agendamentos', 14, finalY + 15);
+    
+    let currentY = (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || 50;
+    
+    if (financial?.employeeFinanceDetails && financial.employeeFinanceDetails.length > 0) {
+      doc.setFontSize(14);
+      doc.text('Detalhamento de Remunerações por Funcionária', 14, currentY + 15);
+      
+      const employeeRows = financial.employeeFinanceDetails.map(emp => {
+        const typeStr = emp.remunerationType === 'SALARIO_FIXO' ? 'Salário Fixo' : emp.remunerationType === 'COMISSIONADO' ? 'Comissionado' : 'Não definido';
+        let baseStr = 'R$ 0.00';
+        if (emp.remunerationType === 'SALARIO_FIXO') {
+          baseStr = `R$ ${emp.remunerationValue?.toFixed(2) || '0.00'}`;
+        } else if (emp.remunerationType === 'COMISSIONADO') {
+          const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+          baseStr = `${emp.remunerationValue || 0}% (${scopeStr})`;
+        }
+        
+        return [
+          emp.employeeName,
+          typeStr,
+          baseStr,
+          emp.doneAppointmentsCount.toString(),
+          `R$ ${emp.doneAppointmentsValue.toFixed(2)}`,
+          `R$ ${emp.calculatedPayout.toFixed(2)}`
+        ];
+      });
+      
+      autoTable(doc, {
+        startY: currentY + 20,
+        head: [['Nome', 'Tipo', 'Base', 'Atendimentos', 'Valor Atendimentos', 'Valor A Pagar']],
+        body: employeeRows
+      });
+      
+      currentY = (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || currentY + 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.text('Resumo de Agendamentos', 14, currentY + 15);
     autoTable(doc, {
-      startY: finalY + 20,
+      startY: currentY + 20,
       head: [['Total', 'Concluídos', 'Pendentes', 'Cancelados']],
       body: [[
         appointments?.totalAppointments || 0,
@@ -133,30 +172,88 @@ export const Reports = () => {
       ) : (
         <>
           {/* Financial Summary */}
-          <div>
-            <h4 className="font-heading font-bold text-lg text-[#3b3036] mb-4">
+          <div className="space-y-6">
+            <h4 className="font-heading font-bold text-lg text-[#3b3036]">
               Resumo Financeiro <span className="text-sm font-normal text-gray-400">({financial?.period})</span>
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
-                <p className="text-xs font-semibold text-[#7a7074] uppercase tracking-wider mb-2">Total Receitas</p>
-                <p className="text-3xl font-extrabold text-emerald-600">R$ {financial?.totalIncome.toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Total Receitas</p>
+                <p className="text-xl font-extrabold text-emerald-600">R$ {financial?.totalIncome.toFixed(2)}</p>
               </div>
-              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-rose-500" />
-                <p className="text-xs font-semibold text-[#7a7074] uppercase tracking-wider mb-2">Total Despesas</p>
-                <p className="text-3xl font-extrabold text-rose-600">R$ {financial?.totalExpense.toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Despesas Gerais</p>
+                <p className="text-xl font-extrabold text-rose-600">R$ {financial?.totalExpense.toFixed(2)}</p>
               </div>
-              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-indigo-500" />
+                <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Salários Fixos</p>
+                <p className="text-xl font-extrabold text-indigo-600">R$ {financial?.totalSalaryPaid.toFixed(2)}</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-500" />
+                <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Comissões</p>
+                <p className="text-xl font-extrabold text-amber-600">R$ {financial?.totalCommissionPaid.toFixed(2)}</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#be8a83] to-[#e5a49c]" />
-                <p className="text-xs font-semibold text-[#7a7074] uppercase tracking-wider mb-2">Lucro Líquido</p>
-                <p className={`text-3xl font-extrabold ${financial?.netProfit! >= 0 ? 'text-[#be8a83]' : 'text-rose-600'}`}>
+                <p className="text-[10px] font-bold text-[#7a7074] uppercase tracking-wider mb-1">Lucro Líquido</p>
+                <p className={`text-xl font-extrabold ${financial?.netProfit! >= 0 ? 'text-[#be8a83]' : 'text-rose-600'}`}>
                   R$ {financial?.netProfit.toFixed(2)}
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Employee Remuneration breakdown table */}
+          {financial?.employeeFinanceDetails && financial.employeeFinanceDetails.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="font-heading font-bold text-lg text-[#3b3036]">
+                Detalhamento de Remunerações por Funcionária
+              </h4>
+              <div className="bg-white rounded-2xl border border-[#eae1e1]/80 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                      <tr className="bg-[#fcf9f9]/50 border-b border-[#eae1e1]">
+                        <th className="px-6 py-4 text-xs font-semibold text-[#3b3036] font-heading uppercase tracking-wider">Nome</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-[#3b3036] font-heading uppercase tracking-wider">Modelo</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-[#3b3036] font-heading uppercase tracking-wider">Base</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-[#3b3036] font-heading uppercase tracking-wider text-center">Atendimentos</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-[#3b3036] font-heading uppercase tracking-wider text-right">Valor Atendimentos</th>
+                        <th className="px-6 py-4 text-xs font-semibold text-[#3b3036] font-heading uppercase tracking-wider text-right">Valor A Pagar</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#eae1e1]/40">
+                      {financial.employeeFinanceDetails.map((emp) => {
+                        const typeStr = emp.remunerationType === 'SALARIO_FIXO' ? 'Salário Fixo' : emp.remunerationType === 'COMISSIONADO' ? 'Comissionado' : 'Não definido';
+                        let baseStr = 'R$ 0,00';
+                        if (emp.remunerationType === 'SALARIO_FIXO') {
+                          baseStr = `R$ ${emp.remunerationValue?.toFixed(2) || '0,00'}`;
+                        } else if (emp.remunerationType === 'COMISSIONADO') {
+                          const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+                          baseStr = `${emp.remunerationValue || 0}% (${scopeStr})`;
+                        }
+
+                        return (
+                          <tr key={emp.employeeId} className="hover:bg-[#fcf9f9]/20 transition-colors">
+                            <td className="px-6 py-4 text-sm font-semibold text-[#3b3036]">{emp.employeeName}</td>
+                            <td className="px-6 py-4 text-sm text-[#7a7074]">{typeStr}</td>
+                            <td className="px-6 py-4 text-sm text-[#7a7074]">{baseStr}</td>
+                            <td className="px-6 py-4 text-sm text-[#7a7074] text-center">{emp.doneAppointmentsCount}</td>
+                            <td className="px-6 py-4 text-sm text-[#7a7074] text-right">R$ {emp.doneAppointmentsValue.toFixed(2)}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-[#be8a83] text-right">R$ {emp.calculatedPayout.toFixed(2)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Revenue Chart */}
           <div>
