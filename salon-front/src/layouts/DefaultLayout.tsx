@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X, Sparkles, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export const DefaultLayout = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -9,6 +10,7 @@ export const DefaultLayout = () => {
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  const { theme, toggleTheme } = useTheme();
 
   const userName = user?.email ? user.email.split('@')[0] : 'Cliente';
 
@@ -56,6 +58,13 @@ export const DefaultLayout = () => {
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-[#3b3036]/70 hover:text-[#be8a83] hover:bg-[#be8a83]/5 rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center"
+                aria-label="Alternar tema"
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
                   <NavLink 
@@ -163,6 +172,18 @@ export const DefaultLayout = () => {
             </div>
 
             <div className="border-t border-gray-100 pt-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100/50 pb-3">
+                <span className="text-xs font-semibold text-[#7a7074] uppercase tracking-wider">
+                  Tema {theme === 'light' ? 'Escuro' : 'Claro'}
+                </span>
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 text-[#3b3036]/70 hover:text-[#be8a83] hover:bg-[#be8a83]/5 rounded-xl transition-all duration-200 cursor-pointer"
+                  aria-label="Alternar tema"
+                >
+                  {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+                </button>
+              </div>
               {isAuthenticated ? (
                 <>
                   <Link 

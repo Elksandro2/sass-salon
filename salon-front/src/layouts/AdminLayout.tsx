@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 import { 
   Menu, 
   X, 
@@ -14,7 +15,9 @@ import {
   FileBarChart, 
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export const AdminLayout = () => {
@@ -24,6 +27,7 @@ export const AdminLayout = () => {
     return localStorage.getItem('salon_sidebar_collapsed') === 'true';
   });
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   if (isLoading) return (
     <div className="flex justify-center items-center h-screen bg-[#fcf9f9]">
@@ -68,13 +72,22 @@ export const AdminLayout = () => {
       {/* Mobile Top Navbar */}
       <div className="md:hidden bg-white/90 backdrop-blur-md text-[#3b3036] flex justify-between items-center p-4 border-b border-[#eae1e1]/50 shadow-xs z-40 sticky top-0">
         <h5 className="m-0 font-heading font-semibold text-lg tracking-wide text-[#be8a83]">Admin Salão</h5>
-        <button 
-          onClick={toggleSidebar} 
-          className="p-1 text-[#3b3036] hover:text-[#be8a83] focus:outline-none transition-colors"
-          aria-label="Toggle navigation"
-        >
-          {showSidebar ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 text-[#3b3036] hover:text-[#be8a83] focus:outline-none transition-colors cursor-pointer"
+            aria-label="Alternar tema"
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+          <button 
+            onClick={toggleSidebar} 
+            className="p-1.5 text-[#3b3036] hover:text-[#be8a83] focus:outline-none transition-colors"
+            aria-label="Toggle navigation"
+          >
+            {showSidebar ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Overlay when sidebar is open on mobile */}
@@ -172,6 +185,13 @@ export const AdminLayout = () => {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-[#3b3036]/70 hover:text-[#be8a83] hover:bg-[#be8a83]/5 rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center"
+              aria-label="Alternar tema"
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
             <div className="text-right">
               <div className="text-sm font-semibold text-[#2a2528] capitalize">{userName}</div>
               <div className="text-xs text-[#7a7074]">{user?.email}</div>
@@ -181,6 +201,7 @@ export const AdminLayout = () => {
             </div>
           </div>
         </header>
+
 
         <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-full">
           <Outlet />

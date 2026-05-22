@@ -38,11 +38,11 @@ export const Login = () => {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white overflow-hidden">
       {/* Left Side: Photo of the business */}
-      <div className="hidden md:flex md:w-1/2 h-screen relative bg-[url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop')] bg-center bg-cover flex-col justify-between p-12 text-white">
-        <div className="absolute inset-0 bg-[#3b3036]/40 backdrop-blur-[2px] z-10" />
+      <div className="hidden md:flex md:w-1/2 h-screen relative bg-[url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop')] bg-center bg-cover flex-col justify-between p-12 text-white md:animate-slide-image-to-left">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#261f23]/90 via-[#3b3036]/50 to-[#261f23]/60 backdrop-blur-[3px] z-10" />
         
         {/* Logo/Brand Title */}
-        <div className="z-20">
+        <div className="z-20 drop-shadow-md">
           <Link to="/" className="font-heading text-3xl font-bold tracking-wider text-white hover:text-[#e5a49c] transition-colors">
             SASS SALON
           </Link>
@@ -50,22 +50,22 @@ export const Login = () => {
 
         {/* Brand Tagline */}
         <div className="z-20 space-y-4">
-          <h1 className="font-heading text-4xl lg:text-5xl font-light leading-tight">
+          <h1 className="font-heading text-4xl lg:text-5xl font-light leading-tight drop-shadow-lg">
             Sua beleza refletida nos mínimos detalhes.
           </h1>
-          <p className="text-[#fcf9f9]/80 text-sm max-w-md font-sans tracking-wide">
+          <p className="text-[#fcf9f9]/90 text-sm max-w-md font-sans tracking-wide drop-shadow-md">
             Agende serviços de alta qualidade com nossas profissionais especializadas em um ambiente elegante e acolhedor.
           </p>
         </div>
 
         {/* Footer/Copyright inside image */}
-        <div className="z-20 text-xs text-[#fcf9f9]/60">
+        <div className="z-20 text-xs text-[#fcf9f9]/70 drop-shadow-sm">
           © {new Date().getFullYear()} Sass Salon. Todos os direitos reservados.
         </div>
       </div>
 
       {/* Right Side: Form */}
-      <div className="w-full md:w-1/2 min-h-screen bg-white flex flex-col justify-center px-6 py-12 sm:px-16 lg:px-24 relative overflow-y-auto">
+      <div className="w-full md:w-1/2 min-h-screen bg-white flex flex-col justify-center px-6 py-12 sm:px-16 lg:px-24 relative overflow-y-auto md:animate-slide-form-to-right">
         {/* Back Button */}
         <Link 
           to="/" 
