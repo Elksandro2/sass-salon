@@ -26,9 +26,15 @@ export const Employees = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<EmployeeData>();
+  const { register, handleSubmit, reset, setValue, watch, clearErrors, formState: { errors } } = useForm<EmployeeData>();
   const remunerationType = watch('remunerationType');
   const { error: showError } = useAlert();
+
+  useEffect(() => {
+    clearErrors('remunerationValue');
+    clearErrors('commissionValue');
+    clearErrors('commissionScope');
+  }, [remunerationType, clearErrors]);
 
   const handleOpenDetails = (employee: EmployeeData) => {
     setSelectedEmployee(employee);
@@ -273,33 +279,26 @@ export const Employees = () => {
                 </div>
               )}
 
-              {(remunerationType === 'SALARIO_FIXO' || remunerationType === 'FIXO_E_COMISSIONADO') && (
+              {(remunerationType === 'SALARIO_FIXO' || remunerationType === 'COMISSIONADO' || remunerationType === 'FIXO_E_COMISSIONADO') && (
                 <div>
-                  <label className={labelCls}>Valor do Salário Fixo (R$)</label>
+                  <label className={labelCls}>
+                    {remunerationType === 'COMISSIONADO' ? 'Porcentagem da Comissão (%)' : 'Valor do Salário Fixo (R$)'}
+                  </label>
                   <input
                     type="number"
                     step="0.01"
                     className={`${inputCls} ${errors.remunerationValue ? 'border-rose-300' : ''}`}
                     {...register('remunerationValue', {
-                      required: 'O salário fixo é obrigatório',
-                      min: { value: 0, message: 'O valor não pode ser negativo' }
-                    })}
-                  />
-                  {errors.remunerationValue && <span className="text-xs text-rose-500 font-semibold">{errors.remunerationValue.message}</span>}
-                </div>
-              )}
-
-              {remunerationType === 'COMISSIONADO' && (
-                <div>
-                  <label className={labelCls}>Porcentagem da Comissão (%)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className={`${inputCls} ${errors.remunerationValue ? 'border-rose-300' : ''}`}
-                    {...register('remunerationValue', {
-                      required: 'A porcentagem da comissão é obrigatória',
+                      required: remunerationType === 'COMISSIONADO' ? 'A porcentagem da comissão é obrigatória' : 'O salário fixo é obrigatório',
                       min: { value: 0, message: 'O valor não pode ser negativo' },
-                      max: { value: 100, message: 'A comissão não pode passar de 100%' }
+                      validate: {
+                        commissionLimit: (value) => {
+                          if (remunerationType === 'COMISSIONADO' && Number(value) > 100) {
+                            return 'A comissão não pode passar de 100%';
+                          }
+                          return true;
+                        }
+                      }
                     })}
                   />
                   {errors.remunerationValue && <span className="text-xs text-rose-500 font-semibold">{errors.remunerationValue.message}</span>}
@@ -441,7 +440,7 @@ export const Employees = () => {
                 <button
                   type="button"
                   onClick={() => setShowDetails(false)}
-                  className="px-6 py-2 bg-[#be8a83] hover:bg-[#a1706a] text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-md shadow-[#be8a83]/10 hover:shadow-lg cursor-pointer"
+                  className="px-6 py-2 bg-[#be8a83] hover:bg-[#a1706a] text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-md shadow-[#be8a83]/10 cursor-pointer"
                 >
                   Fechar
                 </button>
