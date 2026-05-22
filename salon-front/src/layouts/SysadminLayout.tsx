@@ -6,9 +6,7 @@ import {
   X, 
   ToggleLeft, 
   ShieldAlert, 
-  LogOut,
-  ChevronLeft,
-  ChevronRight
+  LogOut
 } from 'lucide-react';
 
 export const SysadminLayout = () => {
@@ -54,11 +52,11 @@ export const SysadminLayout = () => {
   return (
     <div className="min-h-screen bg-[#fcf9f9] flex flex-col md:flex-row">
       {/* Mobile Top Navbar */}
-      <div className="md:hidden bg-[#3b3036] text-white flex justify-between items-center p-4 shadow-md z-40 sticky top-0">
-        <h5 className="m-0 font-heading font-semibold text-lg tracking-wide text-[#e5a49c]">SysAdmin Painel</h5>
+      <div className="md:hidden bg-white/90 backdrop-blur-md text-[#3b3036] flex justify-between items-center p-4 border-b border-[#eae1e1]/50 shadow-xs z-40 sticky top-0">
+        <h5 className="m-0 font-heading font-semibold text-lg tracking-wide text-[#be8a83]">SysAdmin Painel</h5>
         <button 
           onClick={toggleSidebar} 
-          className="p-1 hover:text-[#be8a83] focus:outline-none transition-colors"
+          className="p-1 text-[#3b3036] hover:text-[#be8a83] focus:outline-none transition-colors"
           aria-label="Toggle navigation"
         >
           {showSidebar ? <X size={24} /> : <Menu size={24} />}
@@ -68,27 +66,27 @@ export const SysadminLayout = () => {
       {/* Overlay when sidebar is open on mobile */}
       {showSidebar && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 md:hidden transition-opacity" 
+          className="fixed inset-0 bg-black/30 backdrop-blur-xs z-40 md:hidden transition-opacity" 
           onClick={closeSidebar}
         />
       )}
 
       {/* Sidebar */}
       <aside 
-        className={`bg-gradient-to-b from-[#3b3036] to-[#261f23] text-white flex flex-col fixed md:sticky top-0 h-screen z-50 transition-all duration-300 md:translate-x-0 ${
+        className={`bg-white/80 backdrop-blur-md border-r border-[#eae1e1]/50 text-[#3b3036] flex flex-col fixed md:sticky top-0 h-screen z-50 transition-all duration-300 md:translate-x-0 ${
           showSidebar ? 'translate-x-0' : '-translate-x-full'
         } ${isCollapsed ? 'md:w-20' : 'md:w-[260px]'}`}
       >
-        <div className="flex justify-between items-center px-6 py-5 border-b border-white/10 h-[73px]">
+        <div className="flex justify-between items-center px-6 py-5 border-b border-[#eae1e1]/50 h-[73px] bg-white/50">
           {!isCollapsed ? (
-            <h4 className="font-heading font-bold text-xl tracking-wide text-white transition-all duration-300">
+            <h4 className="font-heading font-bold text-xl tracking-wide text-[#3b3036] transition-all duration-300">
               SysAdmin <span className="text-[#be8a83]">Painel</span>
             </h4>
           ) : (
             <div className="mx-auto text-xl font-bold text-[#be8a83] transition-all duration-300">SA</div>
           )}
           <button 
-            className="md:hidden text-white/80 hover:text-white focus:outline-none" 
+            className="md:hidden text-[#3b3036]/60 hover:text-[#3b3036] focus:outline-none" 
             onClick={closeSidebar}
             aria-label="Close sidebar"
           >
@@ -96,7 +94,7 @@ export const SysadminLayout = () => {
           </button>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.to;
             const Icon = item.icon;
@@ -105,19 +103,19 @@ export const SysadminLayout = () => {
                 key={item.to}
                 to={item.to}
                 onClick={closeSidebar}
-                className={`flex items-center rounded-xl transition-all duration-200 group text-sm font-medium relative ${
-                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'
+                className={`flex items-center rounded-full transition-all duration-200 group text-sm font-medium relative ${
+                  isCollapsed ? 'justify-center p-3 mx-1' : 'gap-3 px-5 py-3 mx-2'
                 } ${
                   isActive
-                    ? 'bg-[#be8a83] text-white shadow-md shadow-[#be8a83]/10'
-                    : 'text-white/70 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#be8a83]/12 text-[#be8a83] font-semibold'
+                    : 'text-[#3b3036]/75 hover:text-[#be8a83] hover:bg-[#be8a83]/5'
                 }`}
               >
-                <Icon size={18} className={isActive ? 'text-white' : 'text-white/60 group-hover:text-white transition-colors'} />
+                <Icon size={18} className={isActive ? 'text-[#be8a83]' : 'text-[#3b3036]/50 group-hover:text-[#be8a83] transition-colors'} />
                 {!isCollapsed && <span>{item.label}</span>}
                 
                 {isCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-1.5 bg-[#261f23] text-white text-xs font-semibold rounded-lg shadow-lg border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
+                  <div className="absolute left-full ml-4 px-3 py-1.5 bg-[#3b3036] text-white text-xs font-semibold rounded-lg shadow-lg border border-[#eae1e1]/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
                     {item.label}
                   </div>
                 )}
@@ -127,36 +125,34 @@ export const SysadminLayout = () => {
 
           <button
             onClick={() => { logout(); closeSidebar(); }}
-            className={`w-full flex items-center rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 text-sm font-semibold mt-8 text-left relative ${
-              isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'
+            className={`w-[calc(100%-16px)] flex items-center rounded-full text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 text-sm font-semibold mt-8 text-left relative ${
+              isCollapsed ? 'justify-center p-3 mx-1' : 'gap-3 px-5 py-3 mx-2'
             }`}
           >
-            <LogOut size={18} />
+            <LogOut size={18} className="text-red-500" />
             {!isCollapsed && <span>Sair</span>}
             
             {isCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-1.5 bg-[#261f23] text-red-400 text-xs font-semibold rounded-lg shadow-lg border border-red-500/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
+              <div className="absolute left-full ml-4 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
                 Sair
               </div>
             )}
           </button>
         </nav>
-
-        {/* Collapse button for desktop */}
-        <button
-          onClick={toggleCollapse}
-          className="hidden md:flex items-center justify-center p-2 mx-4 my-3 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition-all duration-200"
-          aria-label="Collapse sidebar"
-        >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
       </aside>
 
       {/* Main Content Area with Desktop Header */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Desktop Header */}
-        <header className="hidden md:flex justify-between items-center px-8 py-4 bg-white/70 backdrop-blur-md border-b border-[#eae1e1] z-30 h-[73px]">
-          <div className="flex items-center gap-2">
+        <header className="hidden md:flex justify-between items-center px-8 py-4 bg-white/70 backdrop-blur-md border-b border-[#eae1e1]/50 z-30 h-[73px]">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleCollapse}
+              className="p-2 hover:bg-[#be8a83]/10 text-[#3b3036] rounded-full transition-all duration-200 cursor-pointer"
+              aria-label="Toggle sidebar"
+            >
+              <Menu size={20} />
+            </button>
             <span className="text-xs font-semibold bg-[#be8a83]/10 text-[#be8a83] px-2.5 py-1 rounded-full uppercase tracking-wider">
               Sistema Administrador
             </span>
