@@ -37,7 +37,7 @@ public class ReportService {
     @Transactional(readOnly = true)
     public FinancialReportResponse generateFinancialReport(LocalDate from, LocalDate to) {
         if (from == null) from = LocalDate.now().withDayOfMonth(1);
-        if (to == null) to = LocalDate.now();
+        if (to == null) to = LocalDate.now().plusDays(30);
 
         List<CashFlow> cashFlows = cashFlowRepository.findByDateBetween(from, to);
 
@@ -126,7 +126,7 @@ public class ReportService {
     @Transactional(readOnly = true)
     public AppointmentReportResponse generateAppointmentReport(LocalDate from, LocalDate to) {
         final LocalDate fromDate = from == null ? LocalDate.now().withDayOfMonth(1) : from;
-        final LocalDate toDate = to == null ? LocalDate.now() : to;
+        final LocalDate toDate = to == null ? LocalDate.now().plusDays(30) : to;
 
         List<Appointment> appointments = appointmentRepository.findAll().stream()
                 .filter(a -> isAppointmentInReportPeriod(a, fromDate, toDate))
