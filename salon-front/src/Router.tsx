@@ -47,7 +47,7 @@ const MaintenancePage = () => {
         </div>
       </div>
       <p className="text-xs text-[#7a7074]/60 dark:text-[#9ca3af]/50 mt-6">
-        © {new Date().getFullYear()} Sass Salon. Todos os direitos reservados.
+        © {new Date().getFullYear()} Espaço Cristiane Moura. Todos os direitos reservados.
       </p>
     </div>
   );

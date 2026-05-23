@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
@@ -20,6 +20,21 @@ export const Register = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const images = [
+    '/images/salon1.png',
+    '/images/salon2.png',
+    '/images/salon3.png',
+    '/images/salon4.jpg'
+  ];
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     setErrorMsg('');
@@ -38,29 +53,41 @@ export const Register = () => {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row-reverse bg-white overflow-hidden">
       {/* Left Side (in code) / Right Side (visual due to flex-row-reverse): Photo of the business */}
-      <div className="hidden md:flex md:w-1/2 h-screen relative bg-[url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop')] bg-center bg-cover flex-col justify-between p-12 text-white md:animate-slide-image-to-right">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#261f23]/90 via-[#3b3036]/50 to-[#261f23]/60 backdrop-blur-[3px] z-10" />
+      <div className="hidden md:flex md:w-1/2 h-screen relative flex-col justify-between p-12 text-white md:animate-slide-image-to-right overflow-hidden">
+        {/* Background Images Cross-Fade */}
+        {images.map((img, index) => (
+          <div
+            key={img}
+            className={`absolute inset-0 bg-center bg-cover transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+
+        {/* Deep obsidian gradient backdrop with high-contrast text overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f17]/95 via-[#0b0f17]/60 to-[#0b0f17]/40 backdrop-blur-[2px] z-10" />
         
         {/* Logo/Brand Title */}
-        <div className="z-20 drop-shadow-md">
+        <div className="z-20 drop-shadow-lg">
           <Link to="/" className="font-heading text-3xl font-bold tracking-wider text-white hover:text-[#e5a49c] transition-colors">
-            SASS SALON
+            ESPAÇO CRISTIANE MOURA
           </Link>
         </div>
 
         {/* Brand Tagline */}
         <div className="z-20 space-y-4">
-          <h1 className="font-heading text-4xl lg:text-5xl font-light leading-tight drop-shadow-lg">
+          <h1 className="font-heading text-4xl lg:text-5xl font-light leading-tight drop-shadow-2xl">
             Seja bem-vinda ao seu momento de autocuidado.
           </h1>
-          <p className="text-[#fcf9f9]/90 text-sm max-w-md font-sans tracking-wide drop-shadow-md">
+          <p className="text-[#fcf9f9]/90 text-sm max-w-md font-sans tracking-wide drop-shadow-lg">
             Crie sua conta para ter acesso rápido a agendamentos, histórico de serviços e promoções exclusivas.
           </p>
         </div>
 
         {/* Footer/Copyright inside image */}
-        <div className="z-20 text-xs text-[#fcf9f9]/70 drop-shadow-sm">
-          © {new Date().getFullYear()} Sass Salon. Todos os direitos reservados.
+        <div className="z-20 text-xs text-[#fcf9f9]/70 drop-shadow-md">
+          © {new Date().getFullYear()} Espaço Cristiane Moura. Todos os direitos reservados.
         </div>
       </div>
 

@@ -34,7 +34,7 @@ export const CustomerLayout = () => {
             <Link to="/" onClick={closeMobileMenu} className="flex items-center gap-2 group">
               <Sparkles className="text-[#be8a83] h-5 w-5 transition-transform group-hover:rotate-12" />
               <span className="font-heading font-semibold text-lg tracking-wide text-[#3b3036] group-hover:text-[#be8a83] transition-colors">
-                Salão Cristiane
+                Espaço Cristiane Moura
               </span>
             </Link>
 

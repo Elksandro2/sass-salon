@@ -7,7 +7,7 @@ export const PublicHome = () => {
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-2xl mx-auto animate-fadeIn">
         <p className="text-xs font-semibold uppercase tracking-widest text-[#be8a83]">
-          Salão Cristiane
+          Espaço Cristiane Moura
         </p>
         <h1 className="font-heading text-4xl sm:text-5xl font-extrabold text-[#3b3036] tracking-tight leading-tight">
           Beleza e bem-estar no seu ritmo
