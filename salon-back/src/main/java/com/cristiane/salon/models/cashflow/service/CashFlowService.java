@@ -33,7 +33,7 @@ public class CashFlowService {
     @Transactional(readOnly = true)
     public List<CashFlowResponse> findByPeriod(LocalDate from, LocalDate to) {
         if (from == null) from = LocalDate.now().withDayOfMonth(1);
-        if (to == null) to = LocalDate.now();
+        if (to == null) to = LocalDate.now().plusDays(30);
 
         return cashFlowRepository.findByDateBetween(from, to).stream()
                 .map(CashFlowResponse::fromEntity)

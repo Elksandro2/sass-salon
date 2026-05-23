@@ -78,8 +78,16 @@ export const CashFlow = () => {
     }
   }, [watchedType]);
 
+  const getLocalDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleOpenForm = () => {
-    reset({ type: 'INCOME', date: new Date().toISOString().split('T')[0], amount: 0, description: '' });
+    reset({ type: 'INCOME', date: getLocalDateString(), amount: 0, description: '' });
     setSourceType('OTHER');
     setCart([]);
     setProductSearch('');
