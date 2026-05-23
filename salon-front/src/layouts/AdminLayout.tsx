@@ -5,7 +5,6 @@ import { useTheme } from '../context/ThemeContext';
 import { 
   Menu, 
   X, 
-  LayoutDashboard, 
   Users, 
   UserCheck, 
   Scissors, 
@@ -55,14 +54,13 @@ export const AdminLayout = () => {
   };
 
   const menuItems = [
-    { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/admin/reports', label: 'Relatórios', icon: FileBarChart },
     { to: '/admin/users', label: 'Clientes', icon: Users },
     { to: '/admin/employees', label: 'Funcionárias', icon: UserCheck },
     { to: '/admin/services', label: 'Serviços', icon: Scissors },
     { to: '/admin/products', label: 'Produtos', icon: Package },
     { to: '/admin/appointments', label: 'Agendamentos', icon: Calendar },
     { to: '/admin/cashflow', label: 'Fluxo de Caixa', icon: DollarSign },
-    { to: '/admin/reports', label: 'Relatórios', icon: FileBarChart },
   ];
 
   const userName = user?.email ? user.email.split('@')[0] : 'Admin';

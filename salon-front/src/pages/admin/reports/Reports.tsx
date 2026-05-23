@@ -6,18 +6,21 @@ import type { CashFlowData } from '../cashflow/services/cashflow';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { useAlert } from '../../../hooks/useAlert';
 import { getApiErrorMessage } from '../../../utils/apiError';
+import { useAuth } from '../../../hooks/useAuth';
 
 const inputCls = 'input-premium';
 const labelCls = 'label-premium';
 
 export const Reports = () => {
+  const { user } = useAuth();
   const [financial, setFinancial] = useState<FinancialReportResponse | null>(null);
   const [appointments, setAppointments] = useState<AppointmentReportResponse | null>(null);
   const [cashFlows, setCashFlows] = useState<CashFlowData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -45,82 +48,199 @@ export const Reports = () => {
 
   useEffect(() => { loadReports(); }, [dateFrom, dateTo]);
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Relatório Financeiro e Agendamentos', 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Período: ${financial?.period || 'N/A'}`, 14, 30);
-    
-    doc.setFontSize(14);
-    doc.text('Resumo Financeiro', 14, 45);
-    autoTable(doc, {
-      startY: 50,
-      head: [['Receitas', 'Despesas Gerais', 'Gastos Salários', 'Gastos Comissões', 'Lucro Líquido']],
-      body: [[
-        `R$ ${(financial?.totalIncome ?? 0).toFixed(2)}`,
-        `R$ ${(financial?.totalExpense ?? 0).toFixed(2)}`,
-        `R$ ${(financial?.totalSalaryPaid ?? 0).toFixed(2)}`,
-        `R$ ${(financial?.totalCommissionPaid ?? 0).toFixed(2)}`,
-        `R$ ${(financial?.netProfit ?? 0).toFixed(2)}`
-      ]],
-    });
-    
-    let currentY = (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || 50;
-    
-    if (financial?.employeeFinanceDetails && financial.employeeFinanceDetails.length > 0) {
-      doc.setFontSize(14);
-      doc.text('Detalhamento de Remunerações por Funcionária', 14, currentY + 15);
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      // Fetch fresh cash flow transactions for the period before drawing the PDF (user requirement)
+      const cfData = await cashFlowApi.findByPeriod(dateFrom || undefined, dateTo || undefined);
+
+      const doc = new jsPDF();
+      const margin = 15;
+      const docWidth = 210;
       
-      const employeeRows = financial.employeeFinanceDetails.map(emp => {
-        let typeStr = 'Não definido';
-        let baseStr = 'R$ 0.00';
-        
-        if (emp.remunerationType === 'SALARIO_FIXO') {
-          typeStr = 'Salário Fixo';
-          baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)}`;
-        } else if (emp.remunerationType === 'COMISSIONADO') {
-          typeStr = 'Comissionado';
-          const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
-          baseStr = `${emp.remunerationValue ?? 0}% (${scopeStr})`;
-        } else if (emp.remunerationType === 'FIXO_E_COMISSIONADO') {
-          typeStr = 'Fixo + Comissionado';
-          const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
-          baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)} + ${(emp.commissionValue ?? 0).toFixed(0)}% (${scopeStr})`;
-        }
-        
-        return [
-          emp.employeeName,
-          typeStr,
-          baseStr,
-          emp.doneAppointmentsCount.toString(),
-          `R$ ${(emp.doneAppointmentsValue ?? 0).toFixed(2)}`,
-          `R$ ${(emp.calculatedPayout ?? 0).toFixed(2)}`
-        ];
-      });
+      // 1. Draw modern, elegant header banner matching the brand colors (Dusty Rose #be8a83)
+      doc.setFillColor(190, 138, 131);
+      doc.rect(0, 0, docWidth, 40, 'F');
       
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("ESPAÇO CRISTIANE MOURA", margin, 18);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Relatório Executivo de Finanças e Agendamentos", margin, 26);
+      
+      const authorText = user?.email ? `  |  Gerado por: ${user.email}` : '';
+      doc.text(`Período: ${financial?.period || 'Geral'}${authorText}`, margin, 32);
+      
+      let currentY = 48;
+      
+      // Helper function to draw consistent section headers
+      const drawSectionHeader = (title: string, y: number) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(59, 48, 54); // Charcoal #3b3036
+        doc.text(title, margin, y);
+        
+        // Subtle divider line
+        doc.setDrawColor(234, 225, 225); // #eae1e1
+        doc.setLineWidth(0.5);
+        doc.line(margin, y + 2, docWidth - margin, y + 2);
+        return y + 8;
+      };
+      
+      // 2. Financial Summary Table
+      currentY = drawSectionHeader("1. Resumo Financeiro", currentY);
       autoTable(doc, {
-        startY: currentY + 20,
-        head: [['Nome', 'Tipo', 'Base', 'Atendimentos', 'Valor Atendimentos', 'Valor A Pagar']],
-        body: employeeRows
+        startY: currentY,
+        head: [['Receitas', 'Despesas Gerais', 'Gastos Salários', 'Gastos Comissões', 'Lucro Líquido']],
+        body: [[
+          `R$ ${(financial?.totalIncome ?? 0).toFixed(2)}`,
+          `R$ ${(financial?.totalExpense ?? 0).toFixed(2)}`,
+          `R$ ${(financial?.totalSalaryPaid ?? 0).toFixed(2)}`,
+          `R$ ${(financial?.totalCommissionPaid ?? 0).toFixed(2)}`,
+          `R$ ${(financial?.netProfit ?? 0).toFixed(2)}`
+        ]],
+        theme: 'striped',
+        headStyles: { fillColor: [190, 138, 131], textColor: [255, 255, 255], fontStyle: 'bold' },
+        bodyStyles: { textColor: [59, 48, 54] },
+        alternateRowStyles: { fillColor: [252, 249, 249] },
+        margin: { left: margin, right: margin },
       });
       
-      currentY = (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || currentY + 20;
+      currentY = (doc as any).lastAutoTable.finalY + 12;
+      
+      // 3. Employee Remunerations Table
+      if (financial?.employeeFinanceDetails && financial.employeeFinanceDetails.length > 0) {
+        if (currentY > 230) {
+          doc.addPage();
+          currentY = 20;
+        }
+        currentY = drawSectionHeader("2. Detalhamento de Remunerações por Funcionária", currentY);
+        
+        const employeeRows = financial.employeeFinanceDetails.map(emp => {
+          let typeStr = 'Não definido';
+          let baseStr = 'R$ 0,00';
+          
+          if (emp.remunerationType === 'SALARIO_FIXO') {
+            typeStr = 'Salário Fixo';
+            baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)}`;
+          } else if (emp.remunerationType === 'COMISSIONADO') {
+            typeStr = 'Comissionado';
+            const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+            baseStr = `${emp.remunerationValue ?? 0}% (${scopeStr})`;
+          } else if (emp.remunerationType === 'FIXO_E_COMISSIONADO') {
+            typeStr = 'Fixo + Comissionado';
+            const scopeStr = emp.commissionScope === 'GLOBAL' ? 'Global' : 'Individual';
+            baseStr = `R$ ${(emp.remunerationValue ?? 0).toFixed(2)} + ${(emp.commissionValue ?? 0).toFixed(0)}% (${scopeStr})`;
+          }
+          
+          return [
+            emp.employeeName,
+            typeStr,
+            baseStr,
+            emp.doneAppointmentsCount.toString(),
+            `R$ ${(emp.doneAppointmentsValue ?? 0).toFixed(2)}`,
+            `R$ ${(emp.calculatedPayout ?? 0).toFixed(2)}`
+          ];
+        });
+        
+        autoTable(doc, {
+          startY: currentY,
+          head: [['Nome', 'Tipo', 'Base', 'Atendimentos', 'Valor Atendimentos', 'Valor A Pagar']],
+          body: employeeRows,
+          theme: 'striped',
+          headStyles: { fillColor: [59, 48, 54], textColor: [255, 255, 255], fontStyle: 'bold' },
+          bodyStyles: { textColor: [59, 48, 54] },
+          alternateRowStyles: { fillColor: [252, 249, 249] },
+          margin: { left: margin, right: margin },
+        });
+        
+        currentY = (doc as any).lastAutoTable.finalY + 12;
+      }
+      
+      // 4. Appointment Summary Table
+      if (currentY > 230) {
+        doc.addPage();
+        currentY = 20;
+      }
+      currentY = drawSectionHeader("3. Resumo de Agendamentos", currentY);
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Total', 'Concluídos', 'Pendentes', 'Cancelados']],
+        body: [[
+          appointments?.totalAppointments || 0,
+          appointments?.done || 0,
+          appointments?.pending || 0,
+          appointments?.cancelled || 0
+        ]],
+        theme: 'striped',
+        headStyles: { fillColor: [190, 138, 131], textColor: [255, 255, 255], fontStyle: 'bold' },
+        bodyStyles: { textColor: [59, 48, 54] },
+        alternateRowStyles: { fillColor: [252, 249, 249] },
+        margin: { left: margin, right: margin },
+      });
+      
+      currentY = (doc as any).lastAutoTable.finalY + 12;
+      
+      // 5. Cash Flow Transactions Detail
+      if (cfData && cfData.length > 0) {
+        if (currentY > 200) {
+          doc.addPage();
+          currentY = 20;
+        }
+        currentY = drawSectionHeader("4. Detalhamento de Transações (Fluxo de Caixa)", currentY);
+        
+        const cfRows = cfData.map(cf => {
+          const typeStr = cf.type === 'INCOME' ? 'Entrada' : 'Saída';
+          const formattedDate = new Date(cf.date).toLocaleDateString('pt-BR');
+          return [
+            formattedDate,
+            cf.description || 'Sem descrição',
+            typeStr,
+            `R$ ${cf.amount.toFixed(2)}`
+          ];
+        });
+        
+        autoTable(doc, {
+          startY: currentY,
+          head: [['Data', 'Descrição', 'Tipo', 'Valor']],
+          body: cfRows,
+          theme: 'striped',
+          headStyles: { fillColor: [59, 48, 54], textColor: [255, 255, 255], fontStyle: 'bold' },
+          bodyStyles: { textColor: [59, 48, 54] },
+          alternateRowStyles: { fillColor: [252, 249, 249] },
+          margin: { left: margin, right: margin },
+        });
+      }
+      
+      // 6. Draw page numbers and footers across all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        
+        // Subtle footer divider line
+        doc.setDrawColor(234, 225, 225); // #eae1e1
+        doc.setLineWidth(0.5);
+        doc.line(margin, 280, docWidth - margin, 280);
+        
+        // Footer texts
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(122, 112, 116);
+        doc.text("Espaço Cristiane Moura  |  Relatório de Desempenho", margin, 285);
+        doc.text(`Página ${i} de ${totalPages}`, docWidth - margin, 285, { align: 'right' });
+      }
+      
+      const fileDate = new Date().toISOString().substring(0, 10);
+      doc.save(`relatorio-espaco-cristiane-moura-${fileDate}.pdf`);
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Erro ao gerar PDF');
+      await showError(msg);
+    } finally {
+      setIsGeneratingPDF(false);
     }
-    
-    doc.setFontSize(14);
-    doc.text('Resumo de Agendamentos', 14, currentY + 15);
-    autoTable(doc, {
-      startY: currentY + 20,
-      head: [['Total', 'Concluídos', 'Pendentes', 'Cancelados']],
-      body: [[
-        appointments?.totalAppointments || 0,
-        appointments?.done || 0,
-        appointments?.pending || 0,
-        appointments?.cancelled || 0
-      ]],
-    });
-    doc.save('relatorio-salao.pdf');
   };
 
   const chartDataEmployee = Object.entries(appointments?.byEmployee || {}).map(([name, count]) => ({ name, Agendamentos: count }));
@@ -143,13 +263,23 @@ export const Reports = () => {
   return (
     <div className="space-y-8 animate-fade-in-up">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Dashboard & Relatórios</h2>
+        <h2 className="font-heading text-2xl font-bold text-[#3b3036]">Relatórios</h2>
         <button
           onClick={generatePDF}
-          disabled={isLoading}
+          disabled={isLoading || isGeneratingPDF}
           className="flex items-center gap-2 px-5 py-2.5 bg-[#be8a83] hover:bg-[#a1706a] text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-[#be8a83]/10 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
         >
-          <Download size={18} /> Exportar PDF
+          {isGeneratingPDF ? (
+            <>
+              <Loader2 className="animate-spin" size={18} />
+              Gerando PDF...
+            </>
+          ) : (
+            <>
+              <Download size={18} />
+              Exportar PDF
+            </>
+          )}
         </button>
       </div>
 

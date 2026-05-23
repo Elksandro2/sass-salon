@@ -83,7 +83,7 @@ export const Router = () => {
   return (
     <Routes>
       {/* Redirecionamentos para rotas administrativas intuitivas */}
-      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/admin" element={<Navigate to="/admin/reports" replace />} />
       <Route path="/sysadmin" element={<Navigate to="/sysadmin/feature-flags" replace />} />
 
       {/* Portal do Cliente e Home - Condicional à Feature Flag */}
@@ -130,11 +130,7 @@ export const Router = () => {
       <Route element={<AdminLayout />}>
         <Route
           path="/admin/dashboard"
-          element={
-            <ProtectedRoute requiredRole="ADMIN">
-              <Reports />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/admin/reports" replace />}
         />
         <Route
           path="/admin/users"

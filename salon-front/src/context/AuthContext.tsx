@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (decoded.role === 'SYSADMIN') {
         window.location.href = '/sysadmin/feature-flags';
       } else if (decoded.role === 'ADMIN') {
-        window.location.href = '/admin/dashboard';
+        window.location.href = '/admin/reports';
       }
     }
   }, []);
