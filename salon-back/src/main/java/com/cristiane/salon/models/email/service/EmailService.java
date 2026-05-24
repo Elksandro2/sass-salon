@@ -24,10 +24,10 @@ public class EmailService {
     private final TemplateEngine templateEngine;
     private final AuditLogService auditLogService;
 
-    @Value("${spring.mail.username:notificacoes@elksandro.com}")
+    @Value("${mail.from:notificacoes@elksandro.com}")
     private String fromEmail;
 
-    @Value("${app.mail.business:elksandrosandro19@gmail.com}")
+    @Value("${mail.business:elksandrosandro19@gmail.com}")
     private String businessEmail;
 
     @Async
