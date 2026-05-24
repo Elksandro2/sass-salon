@@ -24,8 +24,6 @@ public class EmailService {
     private final TemplateEngine templateEngine;
     private final AuditLogService auditLogService;
 
-    private final RestClient.Builder restClientBuilder;
-
     @Value("${mail.password}")
     private String apiKey;
 
@@ -39,8 +37,8 @@ public class EmailService {
     private String apiUrl;
 
     private void sendViaHttpApi(String to, String subject, String htmlContent, String replyTo) {
-        RestClient restClient = restClientBuilder.baseUrl(apiUrl).build();
-        
+        RestClient restClient = RestClient.create(apiUrl);
+
         Map<String, Object> payload = Map.of(
                 "from", "Cristiane Salon <" + fromEmail + ">",
                 "to", new String[]{to},
