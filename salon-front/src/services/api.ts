@@ -1,6 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _isRefreshRequest?: boolean;
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/v1',
   headers: {
@@ -24,18 +28,19 @@ const processQueue = (error: Error | AxiosError | null, token: string | null = n
       prom.resolve(token);
     }
   });
-
   failedQueue = [];
 };
 
 api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('@Salon:token');
+  (config: CustomAxiosRequestConfig) => {
+    if (config._isRefreshRequest || config.url?.includes('/auth/')) {
+      return config;
+    }
 
+    const token = localStorage.getItem('@Salon:token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => {
@@ -48,7 +53,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as CustomAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -57,7 +62,7 @@ api.interceptors.response.use(
         })
           .then((token) => {
             if (originalRequest.headers) {
-               originalRequest.headers.Authorization = 'Bearer ' + token;
+               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
             return api(originalRequest);
           })
@@ -79,9 +84,11 @@ api.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/v1'}/auth/refresh`, {
+        const { data } = await api.post('/auth/refresh', {
           refreshToken,
-        });
+        }, { 
+          _isRefreshRequest: true 
+        } as CustomAxiosRequestConfig);
 
         localStorage.setItem('@Salon:token', data.accessToken);
         localStorage.setItem('@Salon:refreshToken', data.refreshToken);
@@ -91,7 +98,6 @@ api.interceptors.response.use(
         }
         
         processQueue(null, data.accessToken);
-        
         return api(originalRequest);
       } catch (err) {
         processQueue(err as Error | AxiosError, null);
@@ -104,7 +110,6 @@ api.interceptors.response.use(
       }
     }
 
-    // Redirecionar para login em caso de 403 (sem permissão mesmo após refresh)
     if (error.response?.status === 403) {
       localStorage.removeItem('@Salon:token');
       localStorage.removeItem('@Salon:refreshToken');
