@@ -6,6 +6,7 @@ import com.cristiane.salon.models.featureflag.service.FeatureFlagService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -23,6 +24,12 @@ public class EmailService {
     private final TemplateEngine templateEngine;
     private final AuditLogService auditLogService;
 
+    @Value("${spring.mail.username:notificacoes@elksandro.com}")
+    private String fromEmail;
+
+    @Value("${app.mail.business:elksandrosandro19@gmail.com}")
+    private String businessEmail;
+
     @Async
     public void sendRequestNotificationToStaff(Appointment appointment) {
         if (!featureFlagService.isEnabled("EMAIL_NOTIFICATIONS")) {
@@ -37,23 +44,24 @@ public class EmailService {
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            helper.setTo("admin@salao.com");
+
+            helper.setFrom("Cristiane Salon <" + fromEmail + ">");
+            helper.setReplyTo(businessEmail);
+            helper.setTo(businessEmail); // Notificação vai para o e-mail real do salão
             helper.setSubject("Novo Pedido de Agendamento Recebido");
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
             log.info("E-mail de notificação de solicitação enviado com sucesso para a equipe.");
-            
+
             auditLogService.logAction(
                     null,
                     "SYSTEM",
                     "EMAIL_SENT",
                     "Appointment",
                     appointment.getId(),
-                    "E-mail de solicitação de agendamento enviado para a equipe (admin@salao.com)",
-                    "SUCCESS"
-            );
+                    "E-mail de solicitação de agendamento enviado para a equipe (" + businessEmail + ")",
+                    "SUCCESS");
         } catch (Exception e) {
             log.warn("Falha ao enviar e-mail de solicitação para a equipe: {}", e.getMessage());
             auditLogService.logAction(
@@ -62,10 +70,9 @@ public class EmailService {
                     "EMAIL_SENT",
                     "Appointment",
                     appointment.getId(),
-                    "Falha ao enviar e-mail de solicitação de agendamento para a equipe (admin@salao.com)",
+                    "Falha ao enviar e-mail de solicitação de agendamento para a equipe (" + businessEmail + ")",
                     "FAILURE",
-                    e.getMessage()
-            );
+                    e.getMessage());
         }
     }
 
@@ -89,14 +96,16 @@ public class EmailService {
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
+
+            helper.setFrom("Cristiane Salon <" + fromEmail + ">");
+            helper.setReplyTo(businessEmail); // Se o cliente responder, vai para a Cristiane
             helper.setTo(clientEmail);
             helper.setSubject("Seu Agendamento foi Confirmado!");
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
             log.info("E-mail de confirmação enviado com sucesso para: {}", clientEmail);
-            
+
             auditLogService.logAction(
                     null,
                     "SYSTEM",
@@ -104,8 +113,7 @@ public class EmailService {
                     "Appointment",
                     appointment.getId(),
                     "E-mail de confirmação de agendamento enviado para: " + clientEmail,
-                    "SUCCESS"
-            );
+                    "SUCCESS");
         } catch (Exception e) {
             log.warn("Falha ao enviar e-mail de confirmação para o cliente {}: {}", clientEmail, e.getMessage());
             auditLogService.logAction(
@@ -116,8 +124,7 @@ public class EmailService {
                     appointment.getId(),
                     "Falha ao enviar e-mail de confirmação para: " + clientEmail,
                     "FAILURE",
-                    e.getMessage()
-            );
+                    e.getMessage());
         }
     }
 
@@ -138,14 +145,16 @@ public class EmailService {
 
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                
+
+                helper.setFrom("Cristiane Salon <" + fromEmail + ">");
+                helper.setReplyTo(businessEmail);
                 helper.setTo(clientEmail);
                 helper.setSubject("Agendamento Cancelado");
                 helper.setText(htmlContent, true);
 
                 mailSender.send(message);
                 log.info("E-mail de cancelamento enviado com sucesso para o cliente: {}", clientEmail);
-                
+
                 auditLogService.logAction(
                         null,
                         "SYSTEM",
@@ -153,8 +162,7 @@ public class EmailService {
                         "Appointment",
                         appointment.getId(),
                         "E-mail de cancelamento de agendamento enviado para o cliente: " + clientEmail,
-                        "SUCCESS"
-                );
+                        "SUCCESS");
             } catch (Exception e) {
                 log.warn("Falha ao enviar e-mail de cancelamento para o cliente {}: {}", clientEmail, e.getMessage());
                 auditLogService.logAction(
@@ -165,8 +173,7 @@ public class EmailService {
                         appointment.getId(),
                         "Falha ao enviar e-mail de cancelamento para o cliente: " + clientEmail,
                         "FAILURE",
-                        e.getMessage()
-                );
+                        e.getMessage());
             }
         }
 
@@ -178,23 +185,24 @@ public class EmailService {
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            helper.setTo("admin@salao.com");
+
+            helper.setFrom("Cristiane Salon <" + fromEmail + ">");
+            helper.setReplyTo(businessEmail);
+            helper.setTo(businessEmail); // Notificação interna para e-mail real
             helper.setSubject("Agendamento Cancelado");
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
             log.info("E-mail de cancelamento enviado com sucesso para a equipe.");
-            
+
             auditLogService.logAction(
                     null,
                     "SYSTEM",
                     "EMAIL_SENT",
                     "Appointment",
                     appointment.getId(),
-                    "E-mail de cancelamento de agendamento enviado para a equipe (admin@salao.com)",
-                    "SUCCESS"
-            );
+                    "E-mail de cancelamento de agendamento enviado para a equipe (" + businessEmail + ")",
+                    "SUCCESS");
         } catch (Exception e) {
             log.warn("Falha ao enviar e-mail de cancelamento para a equipe: {}", e.getMessage());
             auditLogService.logAction(
@@ -203,10 +211,9 @@ public class EmailService {
                     "EMAIL_SENT",
                     "Appointment",
                     appointment.getId(),
-                    "Falha ao enviar e-mail de cancelamento para a equipe (admin@salao.com)",
+                    "Falha ao enviar e-mail de cancelamento para a equipe (" + businessEmail + ")",
                     "FAILURE",
-                    e.getMessage()
-            );
+                    e.getMessage());
         }
     }
 }
